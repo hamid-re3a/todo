@@ -190,7 +190,7 @@ class Home extends Component {
     return (
       <React.Fragment>
 
-        <Container >
+        <Container style={{ marginTop: 60 }}>
           <Divider horizontal>
             <Header as="h2">Tasks</Header></Divider>
           {this.props.todos.filter(todaysTask).length != 0 ? (
@@ -204,10 +204,12 @@ class Home extends Component {
                   let startPoint = (item.total[new Date().toISOString().substr(0, 10)] != undefined) ? item.total[new Date().toISOString().substr(0, 10)] : parseInt(item.duration);
                   return (
                     <Table.Row key={i}>
-                      <Table.Cell width={10}>
+                      <Table.Cell width={8}>
                         {item.task}
                       </Table.Cell>
-
+                      <Table.Cell width={2}>
+                        {taskStutus(item)}
+                      </Table.Cell>
                       <Table.Cell width={2} onClick={() => this.toggleCountDownStatus(item)}>
 
                         <Countdown
@@ -217,16 +219,16 @@ class Home extends Component {
                           controlled={false}
                           onTick={item.tick}
                           overtime={true}
-                          renderer={function ({ hours, minutes, seconds, api }) {
+                          renderer={function ({ total, hours, minutes, seconds, api }) {
                             item.clockApi = api
-
-                            return zeroPad(hours) + ":" + zeroPad(minutes) + ":" + zeroPad(seconds)
+                            let sign = (parseInt(total) > 0) ? "" : "-";
+                            return sign + zeroPad(hours) + ":" + zeroPad(minutes) + ":" + zeroPad(seconds)
                           }.bind(this)}
                         />
                       </Table.Cell>
                       <Table.Cell width={4}>
-                        <Button icon='delete' content='Cancel' color="orange" basic size='mini' onClick={() => this.deleteRecord(item)} />
-                        <Button icon={item.isStarted? 'pause':'play'} content={item.isStarted? 'Stop':'Go'} color="green" basic size='mini' onClick={() => this.toggleCountDownStatus(item)} />
+                        <Button icon='delete' content='Cancel' color="black" basic size='mini' onClick={() => this.deleteRecord(item)} />
+                        <Button icon={item.isStarted ? 'pause' : 'play'} content={item.isStarted ? 'Stop' : 'Go'} color='teal' basic size='mini' onClick={() => this.toggleCountDownStatus(item)} />
                       </Table.Cell>
                     </Table.Row>
                   )
@@ -260,23 +262,34 @@ class Home extends Component {
                   </Statistic>
                   <Statistic>
                     <Statistic.Value>
-                      <Icon name="tasks" />
-                      <span style={{ padding: 8 }}>
-                        {this.props.todos.filter(todaysTask).filter((el) => { return parseInt(el.total[new Date().toISOString().substr(0, 10)]) < parseInt(el.duration) })
+                      <Icon name="tasks" color="orange" />
+                      <span style={{ padding: 8, color: '#f2711c' }}>
+                        {this.props.todos.filter(todaysTask).filter((el) => { return !(parseInt(el.total[new Date().toISOString().substr(0, 10)]) < parseInt(el.duration) && !(parseInt(el.total[new Date().toISOString().substr(0, 10)]) <= 0)) })
                           .length}
                       </span>
                     </Statistic.Value>
-                    <Statistic.Label>In Progress</Statistic.Label>
+                    <Statistic.Label style={{ color: '#f2711c' }}>Pending</Statistic.Label>
                   </Statistic>
                   <Statistic>
                     <Statistic.Value>
                       <Icon name="tasks" color="teal" />
-                      <span style={{ padding: 8, color: "#009c95" }}>
+                      <span style={{ padding: 8, color: '#009c95' }}>
+                        {this.props.todos.filter(todaysTask).filter((el) => { return parseInt(el.total[new Date().toISOString().substr(0, 10)]) < parseInt(el.duration) && !(parseInt(el.total[new Date().toISOString().substr(0, 10)]) <= 0) })
+                          .length}
+                      </span>
+                    </Statistic.Value>
+                    <Statistic.Label style={{ color: '#009c95' }}>In Progress</Statistic.Label>
+                  </Statistic>
+
+                  <Statistic>
+                    <Statistic.Value>
+                      <Icon name="tasks" style={{ color: 'gray' }} />
+                      <span style={{ padding: 8, color: "gray" }}>
                         {this.props.todos.filter(todaysTask).filter((el) => { return parseInt(el.total[new Date().toISOString().substr(0, 10)]) <= 0 })
                           .length}
                       </span>
                     </Statistic.Value>
-                    <Statistic.Label style={{ color: "#009c95" }}>
+                    <Statistic.Label style={{ color: "gray" }}>
                       Completed
                     </Statistic.Label>
                   </Statistic>
@@ -313,61 +326,61 @@ class Home extends Component {
 
               </Form.Group>
               <Form.Group inline>
-                <Button  content='Just Today' color="blue" basic size='mini'   onClick={(e) => {
+                <Button content='Just Today' color="teal" basic size='mini' onClick={(e) => {
                   e.preventDefault()
                   this.setState({
                     ...this.state,
                     mon: false,
-                    tue : false,
-                    wed : false,
-                    thu : false,
-                    fri : false,
-                    sat : false,
-                    sun : false
+                    tue: false,
+                    wed: false,
+                    thu: false,
+                    fri: false,
+                    sat: false,
+                    sun: false
                   })
                 }} />
-                <Button  content='All Days' color="blue" basic size='mini'  onClick={(e) => {
+                <Button content='All Days' color="teal" basic size='mini' onClick={(e) => {
                   e.preventDefault()
                   this.setState({
                     ...this.state,
                     mon: true,
-                    tue : true,
-                    wed : true,
-                    thu : true,
-                    fri : true,
-                    sat : true,
-                    sun : true
+                    tue: true,
+                    wed: true,
+                    thu: true,
+                    fri: true,
+                    sat: true,
+                    sun: true
                   })
                 }} />
-                <Button  content='Odd Days' color="blue" basic size='mini'   onClick={(e) => {
+                <Button content='Odd Days' color="teal" basic size='mini' onClick={(e) => {
                   e.preventDefault()
                   this.setState({
                     ...this.state,
                     mon: false,
-                    tue : true,
-                    wed : false,
-                    thu : true,
-                    fri : false,
-                    sat : false,
-                    sun : true
+                    tue: true,
+                    wed: false,
+                    thu: true,
+                    fri: false,
+                    sat: false,
+                    sun: true
                   })
                 }} />
-                
-                <Button  content='Even Days' color="blue" basic size='mini'  onClick={(e) => {
+
+                <Button content='Even Days' color="teal" basic size='mini' onClick={(e) => {
                   e.preventDefault()
                   this.setState({
                     ...this.state,
                     mon: true,
-                    tue : false,
-                    wed : true,
-                    thu : false,
-                    fri : false,
-                    sat : true,
-                    sun : false
+                    tue: false,
+                    wed: true,
+                    thu: false,
+                    fri: false,
+                    sat: true,
+                    sun: false
                   })
-                  
+
                 }} />
-                </Form.Group>
+              </Form.Group>
               <Form.Group inline>
                 <label>Days</label>
                 <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.mon} onChange={this.handleChange} label='Monday' name='mon' />
@@ -388,6 +401,17 @@ class Home extends Component {
       </React.Fragment>
     )
   }
+}
+const taskStutus = (el) => {
+  if (parseInt(el.total[new Date().toISOString().substr(0, 10)]) <= 0)
+    return <Button basic color='gray' content='Completed' size='mini' />
+  else if (parseInt(el.total[new Date().toISOString().substr(0, 10)]) < parseInt(el.duration) && !(parseInt(el.total[new Date().toISOString().substr(0, 10)]) <= 0))
+    return <Button basic color='teal' content='In Progress' size='mini' />
+  else if (!(parseInt(el.total[new Date().toISOString().substr(0, 10)]) < parseInt(el.duration) && !(parseInt(el.total[new Date().toISOString().substr(0, 10)]) <= 0)))
+    return <Button basic color='orange' content='Pending' size='mini' />
+
+
+  return <Button basic color='gray' content='Undefined' />
 }
 const todaysTask = (el) => {
   let day = ''
