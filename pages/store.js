@@ -2,7 +2,7 @@ import { createStore, combineReducers } from "redux";
 import { persistStore, persistReducer,createTransform} from "redux-persist";
 import AsyncStorage from "redux-persist/lib/storage";
 import {parse, stringify, toJSON, fromJSON} from 'flatted'
-import todoReducer from '../pages/reducer/index'
+import todoReducer from '../reducer/index'
 
 export const transformCircular = createTransform(
   (inboundState, key) => stringify(inboundState),

@@ -27,6 +27,8 @@ import { exit } from "process";
 class Home extends Component {
   state = {
     task: '', duration: 60,
+    deleteConfirmOpen :false,
+    toBeDeletedTask : null,
     mon: false,
     tue: false,
     wed: false,
@@ -37,6 +39,8 @@ class Home extends Component {
     todos: this.props.todos
   }
 
+  deleteConfirmOpen = () => this.setState({ deleteConfirmOpen: true })
+  deleteConfirmClose = () => this.setState({ deleteConfirmOpen: false })
 
   componentDidUpdate() {
     this.props.todos.map(function (item, i) {
@@ -227,7 +231,13 @@ class Home extends Component {
                         />
                       </Table.Cell>
                       <Table.Cell width={4}>
-                        <Button icon='delete' content='Cancel' color="black" basic size='mini' onClick={() => this.deleteRecord(item)} />
+                        <Button icon='delete' content='Cancel' color="black" basic size='mini' onClick={()=>{this.deleteConfirmOpen(); this.setState({toBeDeletedTask:item})}} />
+                        <Confirm
+                          open={this.state.deleteConfirmOpen}
+                          onCancel={this.deleteConfirmClose}
+                          onConfirm={()=>{this.deleteConfirmClose();this.deleteRecord(this.state.toBeDeletedTask)}}
+                        />
+        
                         <Button icon={item.isStarted ? 'pause' : 'play'} content={item.isStarted ? 'Stop' : 'Go'} color='teal' basic size='mini' onClick={() => this.toggleCountDownStatus(item)} />
                       </Table.Cell>
                     </Table.Row>
@@ -264,7 +274,7 @@ class Home extends Component {
                     <Statistic.Value>
                       <Icon name="tasks" color="orange" />
                       <span style={{ padding: 8, color: '#f2711c' }}>
-                        {this.props.todos.filter(todaysTask).filter((el) => { return !(parseInt(el.total[new Date().toISOString().substr(0, 10)]) < parseInt(el.duration) && !(parseInt(el.total[new Date().toISOString().substr(0, 10)]) <= 0)) })
+                        {this.props.todos.filter(todaysTask).filter((el) => { return el.total[new Date().toISOString().substr(0, 10)] === undefined  })
                           .length}
                       </span>
                     </Statistic.Value>
@@ -407,7 +417,7 @@ const taskStutus = (el) => {
     return <Button basic color='gray' content='Completed' size='mini' />
   else if (parseInt(el.total[new Date().toISOString().substr(0, 10)]) < parseInt(el.duration) && !(parseInt(el.total[new Date().toISOString().substr(0, 10)]) <= 0))
     return <Button basic color='teal' content='In Progress' size='mini' />
-  else if (!(parseInt(el.total[new Date().toISOString().substr(0, 10)]) < parseInt(el.duration) && !(parseInt(el.total[new Date().toISOString().substr(0, 10)]) <= 0)))
+  else if (el.total[new Date().toISOString().substr(0, 10)] === undefined)
     return <Button basic color='orange' content='Pending' size='mini' />
 
 
