@@ -37,7 +37,41 @@ class Home extends Component {
   }
 
   componentDidMount() {
-    console.log(this.props)
+    console.log(this.props.todos)
+    this.props.todos.map(function (item, i) {
+      let index = this.state.todos.findIndex(el => el.task === item.task)
+      this.state.todos[index].ref = (ref) => {
+        let index = this.state.todos.findIndex(el => el.task === item.task)
+        this.state.todos[index].clockApi = ref
+        this.setState({
+          ...this.state,
+          todos: this.state.todos
+        })
+
+      },
+        this.state.todos[index].tick = (ref) => {
+          let index = this.state.todos.findIndex(el => el.task === item.task)
+          this.state.todos[index].total[new Date().toISOString().substr(0, 10)] = ref.total
+          this.setState({
+            ...this.state,
+
+            todos: this.state.todos
+          })
+
+          this.props.dispatch({
+            type: "UPDATE",
+            key: item.task,
+            payload: {
+              total: this.state.todos[index].total
+            }
+          })
+
+        },
+        this.setState({
+          ...this.state,
+          todos: [...this.state.todos],
+        })
+    }.bind(this))
   }
   handleChange = (e, input) => {
     if (input.type === "checkbox") {
@@ -72,40 +106,6 @@ class Home extends Component {
         task,
         duration: duration * 60 * 1000,
         isStarted: false,
-        ref: (ref) => {
-          this.props.dispatch({
-            type: "UPDATE",
-            key: task,
-            payload: {
-              clockApi: ref
-            }
-          })
-          // let index = this.state.todos.findIndex(el => el.task === task)
-          // this.state.todos[index].clockApi = ref
-          // this.setState({
-          //   ...this.state,
-          //   todos: this.state.todos
-          // })
-
-        },
-        tick: (ref) => {
-          let index = this.props.todos.findIndex(el => el.task === task)
-          this.props.todos[index].total[new Date().toISOString().substr(0, 10)] = ref.total
-          // this.setState({
-          //   ...this.state,
-
-          //   todos: this.state.todos
-          // })
-
-          this.props.dispatch({
-            type: "UPDATE",
-            key: task,
-            payload: {
-              total: this.props.todos[index].total
-            }
-          })
-
-        },
         total: {},
         clockApi: null,
         days: {
@@ -134,6 +134,54 @@ class Home extends Component {
       sat: false,
       sun: false,
 
+
+
+      todos: [
+        ...this.state.todos,
+        {
+          task,
+          duration: duration * 60 * 1000,
+          isStarted: false,
+          ref: (ref) => {
+            let index = this.state.todos.findIndex(el => el.task === task)
+            this.state.todos[index].clockApi = ref
+            this.setState({
+              ...this.state,
+              todos: this.state.todos
+            })
+
+          },
+          tick: (ref) => {
+            let index = this.state.todos.findIndex(el => el.task === task)
+            this.state.todos[index].total[new Date().toISOString().substr(0, 10)] = ref.total
+            this.setState({
+              ...this.state,
+
+              todos: this.state.todos
+            })
+
+            this.props.dispatch({
+              type: "UPDATE",
+              key: task,
+              payload: {
+                total: this.state.todos[index].total
+              }
+            })
+
+          },
+          total: {},
+          clockApi: null,
+          days: {
+            mon: this.state.mon,
+            tue: this.state.tue,
+            wed: this.state.wed,
+            thu: this.state.thu,
+            fri: this.state.fri,
+            sat: this.state.sat,
+            sun: this.state.sun,
+          }
+        }
+      ]
     });
   }
 
@@ -185,7 +233,6 @@ class Home extends Component {
                 {/* We get an Object for todos so we have to map and pull out each "element" */}
 
                 {this.props.todos.filter(todaysTask).map(function (item, i) {
-                  // console.log(this.props.todos)
 
                   let startPoint = (item.total[new Date().toISOString().substr(0, 10)] != undefined) ? item.total[new Date().toISOString().substr(0, 10)] : parseInt(item.duration);
                   return (
@@ -195,12 +242,14 @@ class Home extends Component {
                       </Table.Cell>
                       <Table.Cell onClick={() => this.pauseCountDown(item)}>
 
-                        <Countdown date={Date.now() + startPoint}
+                        <Countdown
+                          date={Date.now() + startPoint}
                           ref={item.ref}
                           autoStart={false}
                           controlled={false}
                           onTick={item.tick}
                           overtime={true}
+
                         />
                       </Table.Cell>
                     </Table.Row>
@@ -228,6 +277,7 @@ class Home extends Component {
                     <Statistic.Value>
                       <Icon name="tasks" />
                       <span style={{ padding: 8 }}>
+                        {this.props.todos.filter(todaysTask).length}
                       </span>
                     </Statistic.Value>
                     <Statistic.Label>Total Todos</Statistic.Label>
@@ -235,15 +285,21 @@ class Home extends Component {
                   <Statistic>
                     <Statistic.Value>
                       <Icon name="tasks" />
-                      <span style={{ padding: 8 }}>0</span>
+                      <span style={{ padding: 8 }}>
+                        {this.props.todos.filter(todaysTask).filter( (el) => 
+                          {return parseInt(el.total[new Date().toISOString().substr(0, 10)]) < parseInt(el.duration)  })
+                        .length}
+                      </span>
                     </Statistic.Value>
-                    <Statistic.Label>Pending</Statistic.Label>
+                    <Statistic.Label>In Progress</Statistic.Label>
                   </Statistic>
                   <Statistic>
                     <Statistic.Value>
                       <Icon name="tasks" color="teal" />
                       <span style={{ padding: 8, color: "#009c95" }}>
-                        10
+                        {this.props.todos.filter(todaysTask).filter( (el) => 
+                        {return parseInt(el.total[new Date().toISOString().substr(0, 10)]) <= 0  })
+                        .length}
                       </span>
                     </Statistic.Value>
                     <Statistic.Label style={{ color: "#009c95" }}>
