@@ -22,6 +22,7 @@ import { connect } from "react-redux";
 
 import Countdown, { zeroPad, calcTimeDelta, formatTimeDelta } from 'react-countdown';
 import { Component } from 'react'
+import { exit } from "process";
 
 class Home extends Component {
   state = {
@@ -36,42 +37,28 @@ class Home extends Component {
     todos: this.props.todos
   }
 
-  componentDidMount() {
-    console.log(this.props.todos)
+
+  componentDidUpdate() {
     this.props.todos.map(function (item, i) {
-      let index = this.state.todos.findIndex(el => el.task === item.task)
-      this.state.todos[index].ref = (ref) => {
-        let index = this.state.todos.findIndex(el => el.task === item.task)
-        this.state.todos[index].clockApi = ref
-        this.setState({
-          ...this.state,
-          todos: this.state.todos
+
+      let index = this.props.todos.findIndex(el => el.task === item.task)
+
+      this.props.todos[index].tick = (ref) => {
+        let index = this.props.todos.findIndex(el => el.task === item.task)
+        this.props.todos[index].total[new Date().toISOString().substr(0, 10)] = ref.total
+
+
+        this.props.dispatch({
+          type: "UPDATE",
+          key: item.task,
+          payload: {
+            total: this.props.todos[index].total
+          }
         })
 
-      },
-        this.state.todos[index].tick = (ref) => {
-          let index = this.state.todos.findIndex(el => el.task === item.task)
-          this.state.todos[index].total[new Date().toISOString().substr(0, 10)] = ref.total
-          this.setState({
-            ...this.state,
-
-            todos: this.state.todos
-          })
-
-          this.props.dispatch({
-            type: "UPDATE",
-            key: item.task,
-            payload: {
-              total: this.state.todos[index].total
-            }
-          })
-
-        },
-        this.setState({
-          ...this.state,
-          todos: [...this.state.todos],
-        })
+      }
     }.bind(this))
+
   }
   handleChange = (e, input) => {
     if (input.type === "checkbox") {
@@ -84,7 +71,22 @@ class Home extends Component {
   handleSubmit = () => {
     const { task, duration } = this.state
 
-    if (task.length === 0 || parseInt(duration) === 0 || !(
+    if (task.length === 0 || parseInt(duration) === 0) {
+      alert('fill all fields')
+      return
+    }
+
+    let days = {
+      mon: this.state.mon,
+      tue: this.state.tue,
+      wed: this.state.wed,
+      thu: this.state.thu,
+      fri: this.state.fri,
+      sat: this.state.sat,
+      sun: this.state.sun,
+    }
+
+    if (!(
       this.state.mon ||
       this.state.tue ||
       this.state.wed ||
@@ -93,10 +95,8 @@ class Home extends Component {
       this.state.sat ||
       this.state.sun
     )) {
-      alert('fill all fields')
-      return
+      days[new Date().toISOString().substr(0, 10)] = true
     }
-
 
 
     this.props.dispatch({
@@ -108,19 +108,13 @@ class Home extends Component {
         isStarted: false,
         total: {},
         clockApi: null,
-        days: {
-          mon: this.state.mon,
-          tue: this.state.tue,
-          wed: this.state.wed,
-          thu: this.state.thu,
-          fri: this.state.fri,
-          sat: this.state.sat,
-          sun: this.state.sun,
-        }
+        days
       }
 
 
     })
+
+
 
     this.setState({
       ...this.state,
@@ -134,63 +128,36 @@ class Home extends Component {
       sat: false,
       sun: false,
 
-
-
       todos: [
         ...this.state.todos,
         {
           task,
           duration: duration * 60 * 1000,
           isStarted: false,
-          ref: (ref) => {
-            let index = this.state.todos.findIndex(el => el.task === task)
-            this.state.todos[index].clockApi = ref
-            this.setState({
-              ...this.state,
-              todos: this.state.todos
-            })
 
-          },
-          tick: (ref) => {
-            let index = this.state.todos.findIndex(el => el.task === task)
-            this.state.todos[index].total[new Date().toISOString().substr(0, 10)] = ref.total
-            this.setState({
-              ...this.state,
-
-              todos: this.state.todos
-            })
-
-            this.props.dispatch({
-              type: "UPDATE",
-              key: task,
-              payload: {
-                total: this.state.todos[index].total
-              }
-            })
-
-          },
           total: {},
           clockApi: null,
-          days: {
-            mon: this.state.mon,
-            tue: this.state.tue,
-            wed: this.state.wed,
-            thu: this.state.thu,
-            fri: this.state.fri,
-            sat: this.state.sat,
-            sun: this.state.sun,
-          }
+          days
         }
       ]
     });
+
+
+  }
+
+  deleteRecord = (item) => {
+
+    this.props.dispatch({
+      type: "DELETE",
+      key: item.task,
+    })
+
   }
 
 
-  pauseCountDown = (item) => {
+  toggleCountDownStatus = (item) => {
     let index = this.props.todos.findIndex(el => el.task === item.task)
     if (this.props.todos[index].isStarted) {
-
-
       this.props.dispatch({
         type: "UPDATE",
         key: item.task,
@@ -213,10 +180,10 @@ class Home extends Component {
       this.props.todos[index].clockApi.start()
     }
 
-    // this.setState({
-    //   ...this.state,
-    //   todos: this.state.todos
-    // })
+    this.setState({
+      ...this.state,
+      todos: this.props.todos
+    })
   }
 
   render() {
@@ -237,10 +204,11 @@ class Home extends Component {
                   let startPoint = (item.total[new Date().toISOString().substr(0, 10)] != undefined) ? item.total[new Date().toISOString().substr(0, 10)] : parseInt(item.duration);
                   return (
                     <Table.Row key={i}>
-                      <Table.Cell width={12}>
+                      <Table.Cell width={10}>
                         {item.task}
                       </Table.Cell>
-                      <Table.Cell onClick={() => this.pauseCountDown(item)}>
+
+                      <Table.Cell width={2} onClick={() => this.toggleCountDownStatus(item)}>
 
                         <Countdown
                           date={Date.now() + startPoint}
@@ -249,8 +217,16 @@ class Home extends Component {
                           controlled={false}
                           onTick={item.tick}
                           overtime={true}
+                          renderer={function ({ hours, minutes, seconds, api }) {
+                            item.clockApi = api
 
+                            return zeroPad(hours) + ":" + zeroPad(minutes) + ":" + zeroPad(seconds)
+                          }.bind(this)}
                         />
+                      </Table.Cell>
+                      <Table.Cell width={4}>
+                        <Button icon='delete' content='Cancel' color="orange" basic size='mini' onClick={() => this.deleteRecord(item)} />
+                        <Button icon={item.isStarted? 'pause':'play'} content={item.isStarted? 'Stop':'Go'} color="green" basic size='mini' onClick={() => this.toggleCountDownStatus(item)} />
                       </Table.Cell>
                     </Table.Row>
                   )
@@ -286,9 +262,8 @@ class Home extends Component {
                     <Statistic.Value>
                       <Icon name="tasks" />
                       <span style={{ padding: 8 }}>
-                        {this.props.todos.filter(todaysTask).filter( (el) => 
-                          {return parseInt(el.total[new Date().toISOString().substr(0, 10)]) < parseInt(el.duration)  })
-                        .length}
+                        {this.props.todos.filter(todaysTask).filter((el) => { return parseInt(el.total[new Date().toISOString().substr(0, 10)]) < parseInt(el.duration) })
+                          .length}
                       </span>
                     </Statistic.Value>
                     <Statistic.Label>In Progress</Statistic.Label>
@@ -297,9 +272,8 @@ class Home extends Component {
                     <Statistic.Value>
                       <Icon name="tasks" color="teal" />
                       <span style={{ padding: 8, color: "#009c95" }}>
-                        {this.props.todos.filter(todaysTask).filter( (el) => 
-                        {return parseInt(el.total[new Date().toISOString().substr(0, 10)]) <= 0  })
-                        .length}
+                        {this.props.todos.filter(todaysTask).filter((el) => { return parseInt(el.total[new Date().toISOString().substr(0, 10)]) <= 0 })
+                          .length}
                       </span>
                     </Statistic.Value>
                     <Statistic.Label style={{ color: "#009c95" }}>
@@ -338,6 +312,62 @@ class Home extends Component {
                 />
 
               </Form.Group>
+              <Form.Group inline>
+                <Button  content='Just Today' color="blue" basic size='mini'   onClick={(e) => {
+                  e.preventDefault()
+                  this.setState({
+                    ...this.state,
+                    mon: false,
+                    tue : false,
+                    wed : false,
+                    thu : false,
+                    fri : false,
+                    sat : false,
+                    sun : false
+                  })
+                }} />
+                <Button  content='All Days' color="blue" basic size='mini'  onClick={(e) => {
+                  e.preventDefault()
+                  this.setState({
+                    ...this.state,
+                    mon: true,
+                    tue : true,
+                    wed : true,
+                    thu : true,
+                    fri : true,
+                    sat : true,
+                    sun : true
+                  })
+                }} />
+                <Button  content='Odd Days' color="blue" basic size='mini'   onClick={(e) => {
+                  e.preventDefault()
+                  this.setState({
+                    ...this.state,
+                    mon: false,
+                    tue : true,
+                    wed : false,
+                    thu : true,
+                    fri : false,
+                    sat : false,
+                    sun : true
+                  })
+                }} />
+                
+                <Button  content='Even Days' color="blue" basic size='mini'  onClick={(e) => {
+                  e.preventDefault()
+                  this.setState({
+                    ...this.state,
+                    mon: true,
+                    tue : false,
+                    wed : true,
+                    thu : false,
+                    fri : false,
+                    sat : true,
+                    sun : false
+                  })
+                  
+                }} />
+                </Form.Group>
               <Form.Group inline>
                 <label>Days</label>
                 <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.mon} onChange={this.handleChange} label='Monday' name='mon' />
@@ -387,8 +417,9 @@ const todaysTask = (el) => {
       break;
 
   }
-
-  return el.days[day] === true
+  if (el === undefined || el === null)
+    return false
+  return el.days[day] === true || el.days[new Date().toISOString().substr(0, 10)] === true
 }
 
 const mapStateToProps = state => ({
