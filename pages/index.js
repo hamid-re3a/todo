@@ -352,7 +352,7 @@ class Home extends Component {
                     style={{ marginBottom: 4 }}
                     type='number'
                     placeholder='مدت انجام'
-                    name=' مدت انجام'
+                    name='duration'
                     value={this.state.duration}
                     onChange={this.handleChange}
                   />
@@ -360,7 +360,7 @@ class Home extends Component {
                     width={14}
                     style={{ marginBottom: 4 }}
                     placeholder='اسم کار'
-                    name='اسم کار'
+                    name='task'
                     value={this.state.task}
                     onChange={this.handleChange}
                   />
