@@ -4,6 +4,7 @@ import { PersistGate } from 'redux-persist/integration/react'
 import { Provider, connect } from "react-redux";
 import configureStore from "./store";
 
+import '../styles/semantic.rtl.min.css';
 
 const { store, persistor } = configureStore();
 function MyApp({ Component, pageProps }) {

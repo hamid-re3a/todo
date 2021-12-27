@@ -8,12 +8,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "flatted": "^3.2.4",
     "next": "12.0.7",
     "react": "17.0.2",
-    "react-dom": "17.0.2",
-
-    "flatted": "^3.2.4",
     "react-countdown": "^2.3.2",
+    "react-dom": "17.0.2",
     "react-redux": "^7.2.6",
     "redux": "^4.1.2",
     "redux-persist": "^6.0.0",

@@ -17,7 +17,7 @@ import {
   Popup,
   Statistic
 } from "semantic-ui-react";
-import 'semantic-ui-css/semantic.min.css'
+// import 'semantic-ui-css/semantic.min.css'
 import { connect } from "react-redux";
 
 import Countdown, { zeroPad, calcTimeDelta, formatTimeDelta } from 'react-countdown';
@@ -27,8 +27,8 @@ import { exit } from "process";
 class Home extends Component {
   state = {
     task: '', duration: 60,
-    deleteConfirmOpen :false,
-    toBeDeletedTask : null,
+    deleteConfirmOpen: false,
+    toBeDeletedTask: null,
     mon: false,
     tue: false,
     wed: false,
@@ -39,11 +39,11 @@ class Home extends Component {
     todos: this.props.todos
   }
 
-  deleteConfirmOpen = () => {this.setState({ deleteConfirmOpen: true }); }
+  deleteConfirmOpen = () => { this.setState({ deleteConfirmOpen: true }); }
   deleteConfirmClose = () => this.setState({ deleteConfirmOpen: false })
 
   componentDidUpdate() {
-    
+
     this.props.todos.map(function (item, i) {
 
       let index = this.props.todos.findIndex(el => el.task === item.task)
@@ -52,6 +52,10 @@ class Home extends Component {
         let index = this.props.todos.findIndex(el => el.task === item.task)
         this.props.todos[index].total[new Date().toLocaleString().substr(0, 10)] = ref.total
 
+
+        let d = Math.abs(ref.total);
+        let sign = (parseInt(ref.total) > 0) ? "" : "-";
+        document.title = item.task + ", " + sign + (new Date(d)).toUTCString().substr(17, 8);
 
         this.props.dispatch({
           type: "UPDATE",
@@ -74,10 +78,11 @@ class Home extends Component {
   }
 
   handleSubmit = () => {
+
     const { task, duration } = this.state
 
     if (task.length === 0 || parseInt(duration) === 0) {
-      alert('fill all fields')
+      alert('تمام فیلدها را پر کنید')
       return
     }
 
@@ -161,6 +166,18 @@ class Home extends Component {
 
 
   toggleCountDownStatus = (item) => {
+    let concurrent = this.props.todos.findIndex(function (inner_item, i) {
+      if (inner_item.task == item.task)
+        return false
+      return inner_item.isStarted
+    })
+    if (concurrent !== -1) {
+      alert('شما نمیتوانید دو کار را همزمان انجام دهید')
+
+      return;
+    }
+
+
     let index = this.props.todos.findIndex(el => el.task === item.task)
     if (this.props.todos[index].isStarted) {
       this.props.dispatch({
@@ -192,239 +209,249 @@ class Home extends Component {
   }
 
   render() {
-  
+
     return (
       <React.Fragment>
+        <div dir="rtl">
 
-        <Container style={{ marginTop: 60 }}>
-          <Divider horizontal>
-            <Header as="h2">Tasks</Header></Divider>
-          {this.props.todos.filter(todaysTask).length != 0 ? (
-            <Table compact basic='very'>
+          <Container style={{ marginTop: 60 }}>
+            <Divider horizontal>
+              <Header as="h2">لیست کارهای امروز</Header></Divider>
+            {this.props.todos.filter(todaysTask).length != 0 ? (
+              <Table compact basic='very'>
 
-              <Table.Body>
-                {/* We get an Object for todos so we have to map and pull out each "element" */}
+                <Table.Body>
+                  {/* We get an Object for todos so we have to map and pull out each "element" */}
 
-                {this.props.todos.filter(todaysTask).map(function (item, i) {
+                  {this.props.todos.filter(todaysTask).map(function (item, i) {
 
-                  let startPoint = (item.total[new Date().toLocaleString().substr(0, 10)] != undefined) ? item.total[new Date().toLocaleString().substr(0, 10)] : parseInt(item.duration);
-                  return (
-                    <Table.Row key={i}>
-                      <Table.Cell width={8}>
-                        {item.task}
-                      </Table.Cell>
-                      <Table.Cell width={2}>
-                        {taskStutus(item)}
-                      </Table.Cell>
-                      <Table.Cell width={2} onClick={() => this.toggleCountDownStatus(item)}>
+                    let startPoint = (item.total[new Date().toLocaleString().substr(0, 10)] != undefined) ? item.total[new Date().toLocaleString().substr(0, 10)] : parseInt(item.duration);
+                    return (
+                      <Table.Row key={i}>
 
-                        <Countdown
-                          date={Date.now() + startPoint}
-                          ref={item.ref}
-                          autoStart={false}
-                          controlled={false}
-                          onTick={item.tick}
-                          overtime={true}
-                          renderer={function ({ total, hours, minutes, seconds, api }) {
+                        <Table.Cell width={6}>
+                          {item.task}
+                        </Table.Cell>
+                        <Table.Cell width={2}>
+                          {(new Date(item.duration)).toUTCString().substr(17, 8)}
+                        </Table.Cell>
+                        <Table.Cell width={2}>
+                          {taskStutus(item)}
+                        </Table.Cell>
+                        <Table.Cell width={2} onClick={() => this.toggleCountDownStatus(item)}>
 
-                            if(total === 0) {
-                              (new Audio('/assets/sounds/clown-horn.wav')).play();
-                            }
-                            item.clockApi = api
-                            let sign = (parseInt(total) > 0) ? "" : "-";
-                            return sign + zeroPad(hours) + ":" + zeroPad(minutes) + ":" + zeroPad(seconds)
-                          }.bind(this)}
-                        />
-                      </Table.Cell>
-                      <Table.Cell width={4}>
-                        <Button icon='delete' content='Cancel' color="black" basic size='mini' onClick={()=>{this.deleteConfirmOpen(); this.setState({toBeDeletedTask:item})}} />
-                        <Confirm
-                          open={this.state.deleteConfirmOpen}
-                          onCancel={this.deleteConfirmClose}
-                          onConfirm={()=>{this.deleteConfirmClose();this.deleteRecord(this.state.toBeDeletedTask)}}
-                        />
-        
-                        <Button icon={item.isStarted ? 'pause' : 'play'} content={item.isStarted ? 'Stop' : 'Go'} color='teal' basic size='mini' onClick={() => this.toggleCountDownStatus(item)} />
-                      </Table.Cell>
-                    </Table.Row>
-                  )
-                }.bind(this))
-                }
-                {/* End of Object.keys */}
-              </Table.Body>
-            </Table>
-          ) : (
-            <Message positive>
-              <Message.Header>No Todos</Message.Header>
-              <p>
-                Looks like your all <b>caught up!</b>
-              </p>
-            </Message>
-          )}
-          <Form>
+                          <Countdown
+                            date={Date.now() + startPoint}
+                            ref={item.ref}
+                            autoStart={false}
+                            controlled={false}
+                            onTick={item.tick}
+                            overtime={true}
+                            renderer={function ({ total, hours, minutes, seconds, api }) {
 
-            <Grid>
-              <Grid.Row>
-                <Grid.Column textAlign="center">
-                  <Divider horizontal>Statistics</Divider>
-                  <Statistic>
-                    <Statistic.Value>
-                      <Icon name="tasks" />
-                      <span style={{ padding: 8 }}>
-                        {this.props.todos.filter(todaysTask).length}
-                      </span>
-                    </Statistic.Value>
-                    <Statistic.Label>Total Todos</Statistic.Label>
-                  </Statistic>
-                  <Statistic>
-                    <Statistic.Value>
-                      <Icon name="tasks" color="orange" />
-                      <span style={{ padding: 8, color: '#f2711c' }}>
-                        {this.props.todos.filter(todaysTask).filter((el) => { return el.total[new Date().toLocaleString().substr(0, 10)] === undefined  })
-                          .length}
-                      </span>
-                    </Statistic.Value>
-                    <Statistic.Label style={{ color: '#f2711c' }}>Pending</Statistic.Label>
-                  </Statistic>
-                  <Statistic>
-                    <Statistic.Value>
-                      <Icon name="tasks" color="teal" />
-                      <span style={{ padding: 8, color: '#009c95' }}>
-                        {this.props.todos.filter(todaysTask).filter((el) => { return parseInt(el.total[new Date().toLocaleString().substr(0, 10)]) < parseInt(el.duration) && !(parseInt(el.total[new Date().toLocaleString().substr(0, 10)]) <= 0) })
-                          .length}
-                      </span>
-                    </Statistic.Value>
-                    <Statistic.Label style={{ color: '#009c95' }}>In Progress</Statistic.Label>
-                  </Statistic>
+                              if (total === 0) {
+                                (new Audio('/assets/sounds/clown-horn.wav')).play();
+                              }
+                              item.clockApi = api
+                              let sign = (parseInt(total) > 0) ? "" : "-";
 
-                  <Statistic>
-                    <Statistic.Value>
-                      <Icon name="tasks" style={{ color: 'gray' }} />
-                      <span style={{ padding: 8, color: "gray" }}>
-                        {this.props.todos.filter(todaysTask).filter((el) => { return parseInt(el.total[new Date().toLocaleString().substr(0, 10)]) <= 0 })
-                          .length}
-                      </span>
-                    </Statistic.Value>
-                    <Statistic.Label style={{ color: "gray" }}>
-                      Completed
-                    </Statistic.Label>
-                  </Statistic>
-                </Grid.Column>
-              </Grid.Row>
+                              return sign + zeroPad(hours) + ":" + zeroPad(minutes) + ":" + zeroPad(seconds)
+                            }.bind(this)}
+                          />
+                        </Table.Cell>
+                        <Table.Cell width={4}>
+                          <Button content='حذف' color="black" basic size='mini' onClick={() => { this.deleteConfirmOpen(); this.setState({ toBeDeletedTask: item }) }} />
+                          <Confirm
+                            open={this.state.deleteConfirmOpen}
+                            onCancel={this.deleteConfirmClose}
+                            content="آیا مطمئنید؟"
+                            size='small'
+                            onConfirm={() => { this.deleteConfirmClose(); this.deleteRecord(this.state.toBeDeletedTask) }}
+                          />
+{/* icon={item.isStarted ? 'pause' : 'play'}  */}
+                          <Button content={item.isStarted ? 'توقف' : 'انجام'} color='teal' basic size='mini' onClick={() => this.toggleCountDownStatus(item)} />
+                        </Table.Cell>
+                      </Table.Row>
+                    )
+                  }.bind(this))
+                  }
+                  {/* End of Object.keys */}
+                </Table.Body>
+              </Table>
+            ) : (
+              <Message positive>
+                <Message.Header>کاری نیست</Message.Header>
+                <p>
+                 به نظر میرسه همه کارها <b>انجام شده!</b>
+                </p>
+              </Message>
+            )}
+            <Form>
 
-            </Grid>
-          </Form>
-          {/* End add a form at the end of the table */}
-        </Container>
+              <Grid>
+                <Grid.Row>
+                  <Grid.Column textAlign="center">
+                    <Divider horizontal>آمار</Divider>
+                    <Statistic>
+                      <Statistic.Value>
+                        <Icon name="tasks" />
+                        <span style={{ padding: 8 }}>
+                          {this.props.todos.filter(todaysTask).length}
+                        </span>
+                      </Statistic.Value>
+                      <Statistic.Label>تمام کارها</Statistic.Label>
+                    </Statistic>
+                    <Statistic>
+                      <Statistic.Value>
+                        <Icon name="tasks" color="orange" />
+                        <span style={{ padding: 8, color: '#f2711c' }}>
+                          {this.props.todos.filter(todaysTask).filter((el) => { return el.total[new Date().toLocaleString().substr(0, 10)] === undefined })
+                            .length}
+                        </span>
+                      </Statistic.Value>
+                      <Statistic.Label style={{ color: '#f2711c' }}>انجام نشده</Statistic.Label>
+                    </Statistic>
+                    <Statistic>
+                      <Statistic.Value>
+                        <Icon name="tasks" color="teal" />
+                        <span style={{ padding: 8, color: '#009c95' }}>
+                          {this.props.todos.filter(todaysTask).filter((el) => { return parseInt(el.total[new Date().toLocaleString().substr(0, 10)]) < parseInt(el.duration) && !(parseInt(el.total[new Date().toLocaleString().substr(0, 10)]) <= 0) })
+                            .length}
+                        </span>
+                      </Statistic.Value>
+                      <Statistic.Label style={{ color: '#009c95' }}>در حال انجام</Statistic.Label>
+                    </Statistic>
 
-        <Container>
-          <Segment>
-            <Header>New Task</Header>
-            <Form onSubmit={this.handleSubmit}>
-              <Form.Group >
-                <Form.Input
-                  width={2}
-                  style={{ marginBottom: 4 }}
-                  type='number'
-                  placeholder='Duration'
-                  name='duration'
-                  value={this.state.duration}
-                  onChange={this.handleChange}
-                />
-                <Form.Input
-                  width={14}
-                  style={{ marginBottom: 4 }}
-                  placeholder='Task'
-                  name='task'
-                  value={this.state.task}
-                  onChange={this.handleChange}
-                />
+                    <Statistic>
+                      <Statistic.Value>
+                        <Icon name="tasks" style={{ color: 'gray' }} />
+                        <span style={{ padding: 8, color: "gray" }}>
+                          {this.props.todos.filter(todaysTask).filter((el) => { return parseInt(el.total[new Date().toLocaleString().substr(0, 10)]) <= 0 })
+                            .length}
+                        </span>
+                      </Statistic.Value>
+                      <Statistic.Label style={{ color: "gray" }}>
+                        تکمیل شده
+                      </Statistic.Label>
+                    </Statistic>
+                  </Grid.Column>
+                </Grid.Row>
 
-              </Form.Group>
-              <Form.Group inline>
-                <Button content='Just Today' color="teal" basic size='mini' onClick={(e) => {
-                  e.preventDefault()
-                  this.setState({
-                    ...this.state,
-                    mon: false,
-                    tue: false,
-                    wed: false,
-                    thu: false,
-                    fri: false,
-                    sat: false,
-                    sun: false
-                  })
-                }} />
-                <Button content='All Days' color="teal" basic size='mini' onClick={(e) => {
-                  e.preventDefault()
-                  this.setState({
-                    ...this.state,
-                    mon: true,
-                    tue: true,
-                    wed: true,
-                    thu: true,
-                    fri: true,
-                    sat: true,
-                    sun: true
-                  })
-                }} />
-                <Button content='Odd Days' color="teal" basic size='mini' onClick={(e) => {
-                  e.preventDefault()
-                  this.setState({
-                    ...this.state,
-                    mon: false,
-                    tue: true,
-                    wed: false,
-                    thu: true,
-                    fri: false,
-                    sat: false,
-                    sun: true
-                  })
-                }} />
-
-                <Button content='Even Days' color="teal" basic size='mini' onClick={(e) => {
-                  e.preventDefault()
-                  this.setState({
-                    ...this.state,
-                    mon: true,
-                    tue: false,
-                    wed: true,
-                    thu: false,
-                    fri: false,
-                    sat: true,
-                    sun: false
-                  })
-
-                }} />
-              </Form.Group>
-              <Form.Group inline>
-                <label>Days</label>
-                <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.mon} onChange={this.handleChange} label='Monday' name='mon' />
-                <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.tue} onChange={this.handleChange} label='Tuesday' name='tue' />
-                <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.wed} onChange={this.handleChange} label='Wednesday' name='wed' />
-                <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.thu} onChange={this.handleChange} label='Thursday' name='thu' />
-                <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.fri} onChange={this.handleChange} label='Friday' name='fri' />
-                <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.sat} onChange={this.handleChange} label='Saturday' name='sat' />
-                <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.sun} onChange={this.handleChange} label='Sunday' name='sun' />
-              </Form.Group>
-              <Form.Group>
-                <Form.Button width={2} content='Submit' />
-              </Form.Group>
+              </Grid>
             </Form>
-          </Segment>
+            {/* End add a form at the end of the table */}
+          </Container>
 
-        </Container>
+          <Container>
+            <Segment>
+              <Header>کار جدید</Header>
+              <Form onSubmit={this.handleSubmit}>
+                <Form.Group >
+                  <Form.Input
+                    width={2}
+                    style={{ marginBottom: 4 }}
+                    type='number'
+                    placeholder='مدت انجام'
+                    name=' مدت انجام'
+                    value={this.state.duration}
+                    onChange={this.handleChange}
+                  />
+                  <Form.Input
+                    width={14}
+                    style={{ marginBottom: 4 }}
+                    placeholder='اسم کار'
+                    name='اسم کار'
+                    value={this.state.task}
+                    onChange={this.handleChange}
+                  />
+
+                </Form.Group>
+                <Form.Group inline>
+                  <Button content='فقط امروز' color="teal" basic size='mini' onClick={(e) => {
+                    e.preventDefault()
+                    this.setState({
+                      ...this.state,
+                      mon: false,
+                      tue: false,
+                      wed: false,
+                      thu: false,
+                      fri: false,
+                      sat: false,
+                      sun: false
+                    })
+                  }} />
+                  <Button content='هر روز' color="teal" basic size='mini' onClick={(e) => {
+                    e.preventDefault()
+                    this.setState({
+                      ...this.state,
+                      mon: true,
+                      tue: true,
+                      wed: true,
+                      thu: true,
+                      fri: true,
+                      sat: true,
+                      sun: true
+                    })
+                  }} />
+                  <Button content='روزهای فرد' color="teal" basic size='mini' onClick={(e) => {
+                    e.preventDefault()
+                    this.setState({
+                      ...this.state,
+                      mon: false,
+                      tue: true,
+                      wed: false,
+                      thu: true,
+                      fri: false,
+                      sat: false,
+                      sun: true
+                    })
+                  }} />
+
+                  <Button content='روزهای زوج' color="teal" basic size='mini' onClick={(e) => {
+                    e.preventDefault()
+                    this.setState({
+                      ...this.state,
+                      mon: true,
+                      tue: false,
+                      wed: true,
+                      thu: false,
+                      fri: false,
+                      sat: true,
+                      sun: false
+                    })
+
+                  }} />
+                </Form.Group>
+                <Form.Group inline>
+                  <label>روزها</label>
+                  <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.mon} onChange={this.handleChange} label='دوشنبه' name='mon' />
+                  <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.tue} onChange={this.handleChange} label='سه شنبه' name='tue' />
+                  <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.wed} onChange={this.handleChange} label='چهارشنبه' name='wed' />
+                  <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.thu} onChange={this.handleChange} label='پنجشنبه' name='thu' />
+                  <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.fri} onChange={this.handleChange} label='جمعه' name='fri' />
+                  <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.sat} onChange={this.handleChange} label='شنبه' name='sat' />
+                  <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.sun} onChange={this.handleChange} label='یکشنبه' name='sun' />
+                </Form.Group>
+                <Form.Group>
+                  <Form.Button width={2} content='ثبت' />
+                </Form.Group>
+              </Form>
+            </Segment>
+
+          </Container>
+
+        </div>
       </React.Fragment>
     )
   }
 }
 const taskStutus = (el) => {
   if (parseInt(el.total[new Date().toLocaleString().substr(0, 10)]) <= 0)
-    return <Button basic content='Completed' size='mini' />
+    return <Button basic content='تکمیل شده' size='mini' />
   else if (parseInt(el.total[new Date().toLocaleString().substr(0, 10)]) < parseInt(el.duration) && !(parseInt(el.total[new Date().toLocaleString().substr(0, 10)]) <= 0))
-    return <Button basic color='teal' content='In Progress' size='mini' />
+    return <Button basic color='teal' content='در حال انجام' size='mini' />
   else if (el.total[new Date().toLocaleString().substr(0, 10)] === undefined)
-    return <Button basic color='orange' content='Pending' size='mini' />
+    return <Button basic color='orange' content='انجام نشده' size='mini' />
 
 
   return <Button basic content='Undefined' />
