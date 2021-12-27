@@ -39,17 +39,18 @@ class Home extends Component {
     todos: this.props.todos
   }
 
-  deleteConfirmOpen = () => this.setState({ deleteConfirmOpen: true })
+  deleteConfirmOpen = () => {this.setState({ deleteConfirmOpen: true }); }
   deleteConfirmClose = () => this.setState({ deleteConfirmOpen: false })
 
   componentDidUpdate() {
+    
     this.props.todos.map(function (item, i) {
 
       let index = this.props.todos.findIndex(el => el.task === item.task)
 
       this.props.todos[index].tick = (ref) => {
         let index = this.props.todos.findIndex(el => el.task === item.task)
-        this.props.todos[index].total[new Date().toISOString().toLocaleString().substr(0, 10)] = ref.total
+        this.props.todos[index].total[new Date().toLocaleString().substr(0, 10)] = ref.total
 
 
         this.props.dispatch({
@@ -99,7 +100,7 @@ class Home extends Component {
       this.state.sat ||
       this.state.sun
     )) {
-      days[new Date().toISOString().toLocaleString().substr(0, 10)] = true
+      days[new Date().toLocaleString().substr(0, 10)] = true
     }
 
 
@@ -191,6 +192,7 @@ class Home extends Component {
   }
 
   render() {
+  
     return (
       <React.Fragment>
 
@@ -205,7 +207,7 @@ class Home extends Component {
 
                 {this.props.todos.filter(todaysTask).map(function (item, i) {
 
-                  let startPoint = (item.total[new Date().toISOString().toLocaleString().substr(0, 10)] != undefined) ? item.total[new Date().toISOString().toLocaleString().substr(0, 10)] : parseInt(item.duration);
+                  let startPoint = (item.total[new Date().toLocaleString().substr(0, 10)] != undefined) ? item.total[new Date().toLocaleString().substr(0, 10)] : parseInt(item.duration);
                   return (
                     <Table.Row key={i}>
                       <Table.Cell width={8}>
@@ -224,6 +226,10 @@ class Home extends Component {
                           onTick={item.tick}
                           overtime={true}
                           renderer={function ({ total, hours, minutes, seconds, api }) {
+
+                            if(total === 0) {
+                              (new Audio('/assets/sounds/clown-horn.wav')).play();
+                            }
                             item.clockApi = api
                             let sign = (parseInt(total) > 0) ? "" : "-";
                             return sign + zeroPad(hours) + ":" + zeroPad(minutes) + ":" + zeroPad(seconds)
@@ -274,7 +280,7 @@ class Home extends Component {
                     <Statistic.Value>
                       <Icon name="tasks" color="orange" />
                       <span style={{ padding: 8, color: '#f2711c' }}>
-                        {this.props.todos.filter(todaysTask).filter((el) => { return el.total[new Date().toISOString().toLocaleString().substr(0, 10)] === undefined  })
+                        {this.props.todos.filter(todaysTask).filter((el) => { return el.total[new Date().toLocaleString().substr(0, 10)] === undefined  })
                           .length}
                       </span>
                     </Statistic.Value>
@@ -284,7 +290,7 @@ class Home extends Component {
                     <Statistic.Value>
                       <Icon name="tasks" color="teal" />
                       <span style={{ padding: 8, color: '#009c95' }}>
-                        {this.props.todos.filter(todaysTask).filter((el) => { return parseInt(el.total[new Date().toISOString().toLocaleString().substr(0, 10)]) < parseInt(el.duration) && !(parseInt(el.total[new Date().toISOString().toLocaleString().substr(0, 10)]) <= 0) })
+                        {this.props.todos.filter(todaysTask).filter((el) => { return parseInt(el.total[new Date().toLocaleString().substr(0, 10)]) < parseInt(el.duration) && !(parseInt(el.total[new Date().toLocaleString().substr(0, 10)]) <= 0) })
                           .length}
                       </span>
                     </Statistic.Value>
@@ -295,7 +301,7 @@ class Home extends Component {
                     <Statistic.Value>
                       <Icon name="tasks" style={{ color: 'gray' }} />
                       <span style={{ padding: 8, color: "gray" }}>
-                        {this.props.todos.filter(todaysTask).filter((el) => { return parseInt(el.total[new Date().toISOString().toLocaleString().substr(0, 10)]) <= 0 })
+                        {this.props.todos.filter(todaysTask).filter((el) => { return parseInt(el.total[new Date().toLocaleString().substr(0, 10)]) <= 0 })
                           .length}
                       </span>
                     </Statistic.Value>
@@ -413,11 +419,11 @@ class Home extends Component {
   }
 }
 const taskStutus = (el) => {
-  if (parseInt(el.total[new Date().toISOString().toLocaleString().substr(0, 10)]) <= 0)
+  if (parseInt(el.total[new Date().toLocaleString().substr(0, 10)]) <= 0)
     return <Button basic content='Completed' size='mini' />
-  else if (parseInt(el.total[new Date().toISOString().toLocaleString().substr(0, 10)]) < parseInt(el.duration) && !(parseInt(el.total[new Date().toISOString().toLocaleString().substr(0, 10)]) <= 0))
+  else if (parseInt(el.total[new Date().toLocaleString().substr(0, 10)]) < parseInt(el.duration) && !(parseInt(el.total[new Date().toLocaleString().substr(0, 10)]) <= 0))
     return <Button basic color='teal' content='In Progress' size='mini' />
-  else if (el.total[new Date().toISOString().toLocaleString().substr(0, 10)] === undefined)
+  else if (el.total[new Date().toLocaleString().substr(0, 10)] === undefined)
     return <Button basic color='orange' content='Pending' size='mini' />
 
 
@@ -458,10 +464,7 @@ const todaysTask = (el) => {
   if (el === undefined || el === null)
     return false
 
-
-    if(el.task === 'Okrane Job')
-    console.log(el.days[new Date().toISOString().toLocaleString().substr(0, 10)])
-  return el.days[day] === true || el.days[new Date().toISOString().toLocaleString().substr(0, 10)] === true
+  return el.days[day] === true || el.days[new Date().toLocaleString().substr(0, 10)] === true
 }
 
 const mapStateToProps = state => ({
