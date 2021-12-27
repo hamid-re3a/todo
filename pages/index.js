@@ -1,5 +1,6 @@
 import React from "react";
 import { Button, Container, Segment, Grid, Header } from "semantic-ui-react";
+import { withRouter } from 'next/router'
 import {
   Table,
   Message,
@@ -17,8 +18,10 @@ import {
   Popup,
   Statistic
 } from "semantic-ui-react";
+import Link from 'next/link';
 // import 'semantic-ui-css/semantic.min.css'
 import { connect } from "react-redux";
+import lang from "../resources/lang/app.json";
 
 import Countdown, { zeroPad, calcTimeDelta, formatTimeDelta } from 'react-countdown';
 import { Component } from 'react'
@@ -38,6 +41,7 @@ class Home extends Component {
     sun: false,
     todos: this.props.todos
   }
+
 
   deleteConfirmOpen = () => { this.setState({ deleteConfirmOpen: true }); }
   deleteConfirmClose = () => this.setState({ deleteConfirmOpen: false })
@@ -82,7 +86,7 @@ class Home extends Component {
     const { task, duration } = this.state
 
     if (task.length === 0 || parseInt(duration) === 0) {
-      alert('تمام فیلدها را پر کنید')
+      alert(lang[this.props.router.locale]["Fill all fileds"])
       return
     }
 
@@ -166,13 +170,14 @@ class Home extends Component {
 
 
   toggleCountDownStatus = (item) => {
+
     let concurrent = this.props.todos.findIndex(function (inner_item, i) {
       if (inner_item.task == item.task)
         return false
       return inner_item.isStarted
     })
     if (concurrent !== -1) {
-      alert('شما نمیتوانید دو کار را همزمان انجام دهید')
+      alert(lang[this.props.router.locale]["Concurrent jobs"])
 
       return;
     }
@@ -209,14 +214,23 @@ class Home extends Component {
   }
 
   render() {
-
+    console.log(this.props.router)
     return (
-      <React.Fragment>
-        <div dir="rtl">
 
-          <Container style={{ marginTop: 60 }}>
+      <React.Fragment>
+
+        <Container style={{ marginTop: 30 }}>
+
+
+          <Link href={this.props.router.asPath} locale={(this.props.router.locale == "fa-IR") ? "en-US" : "fa-IR"}>
+            {(this.props.router.locale == "fa-IR") ? "English" : "فارسی"}
+          </Link>
+        </Container>
+        <div dir={(this.props.router.locale == "fa-IR") ? "rtl" : ""}>
+
+          <Container style={{ marginTop: 30 }}>
             <Divider horizontal>
-              <Header as="h2">لیست کارهای امروز</Header></Divider>
+              <Header as="h2">{lang[this.props.router.locale]["Today's Tasks"]}</Header></Divider>
             {this.props.todos.filter(todaysTask).length != 0 ? (
               <Table compact basic='very'>
 
@@ -236,7 +250,7 @@ class Home extends Component {
                           {(new Date(item.duration)).toUTCString().substr(17, 8)}
                         </Table.Cell>
                         <Table.Cell width={2}>
-                          {taskStutus(item)}
+                          {taskStutus(item, this.props.router.locale)}
                         </Table.Cell>
                         <Table.Cell width={2} onClick={() => this.toggleCountDownStatus(item)}>
 
@@ -260,16 +274,18 @@ class Home extends Component {
                           />
                         </Table.Cell>
                         <Table.Cell width={4}>
-                          <Button content='حذف' color="black" basic size='mini' onClick={() => { this.deleteConfirmOpen(); this.setState({ toBeDeletedTask: item }) }} />
+                          <Button icon='delete' content={lang[this.props.router.locale]["Delete"]} color="black" basic size='mini' onClick={() => { this.deleteConfirmOpen(); this.setState({ toBeDeletedTask: item }) }} />
                           <Confirm
                             open={this.state.deleteConfirmOpen}
                             onCancel={this.deleteConfirmClose}
-                            content="آیا مطمئنید؟"
-                            size='small'
+                            content={lang[this.props.router.locale]["Confirm content"]}
+                            cancelButton={lang[this.props.router.locale]["Cancel Button"]}
+                            confirmButton={lang[this.props.router.locale]["Confirm Button"]}
+                            size='mini'
                             onConfirm={() => { this.deleteConfirmClose(); this.deleteRecord(this.state.toBeDeletedTask) }}
                           />
-{/* icon={item.isStarted ? 'pause' : 'play'}  */}
-                          <Button content={item.isStarted ? 'توقف' : 'انجام'} color='teal' basic size='mini' onClick={() => this.toggleCountDownStatus(item)} />
+
+                          <Button icon={item.isStarted ? 'pause' : 'play'} content={item.isStarted ? lang[this.props.router.locale]["Pause"] : lang[this.props.router.locale]["Start"]} color='teal' basic size='mini' onClick={() => this.toggleCountDownStatus(item)} />
                         </Table.Cell>
                       </Table.Row>
                     )
@@ -280,9 +296,9 @@ class Home extends Component {
               </Table>
             ) : (
               <Message positive>
-                <Message.Header>کاری نیست</Message.Header>
+                <Message.Header>{lang[this.props.router.locale]["No Job"]}</Message.Header>
                 <p>
-                 به نظر میرسه همه کارها <b>انجام شده!</b>
+                  {lang[this.props.router.locale]["No Job description"]}
                 </p>
               </Message>
             )}
@@ -291,7 +307,7 @@ class Home extends Component {
               <Grid>
                 <Grid.Row>
                   <Grid.Column textAlign="center">
-                    <Divider horizontal>آمار</Divider>
+                    <Divider horizontal>{lang[this.props.router.locale]["Statistics"]}</Divider>
                     <Statistic>
                       <Statistic.Value>
                         <Icon name="tasks" />
@@ -299,7 +315,7 @@ class Home extends Component {
                           {this.props.todos.filter(todaysTask).length}
                         </span>
                       </Statistic.Value>
-                      <Statistic.Label>تمام کارها</Statistic.Label>
+                      <Statistic.Label>{lang[this.props.router.locale]["All Tasks"]}</Statistic.Label>
                     </Statistic>
                     <Statistic>
                       <Statistic.Value>
@@ -309,7 +325,7 @@ class Home extends Component {
                             .length}
                         </span>
                       </Statistic.Value>
-                      <Statistic.Label style={{ color: '#f2711c' }}>انجام نشده</Statistic.Label>
+                      <Statistic.Label style={{ color: '#f2711c' }}>{lang[this.props.router.locale]["Pending"]}</Statistic.Label>
                     </Statistic>
                     <Statistic>
                       <Statistic.Value>
@@ -319,7 +335,7 @@ class Home extends Component {
                             .length}
                         </span>
                       </Statistic.Value>
-                      <Statistic.Label style={{ color: '#009c95' }}>در حال انجام</Statistic.Label>
+                      <Statistic.Label style={{ color: '#009c95' }}>{lang[this.props.router.locale]["In Progress"]}</Statistic.Label>
                     </Statistic>
 
                     <Statistic>
@@ -331,7 +347,7 @@ class Home extends Component {
                         </span>
                       </Statistic.Value>
                       <Statistic.Label style={{ color: "gray" }}>
-                        تکمیل شده
+                        {lang[this.props.router.locale]["Compeleted"]}
                       </Statistic.Label>
                     </Statistic>
                   </Grid.Column>
@@ -344,14 +360,14 @@ class Home extends Component {
 
           <Container>
             <Segment>
-              <Header>کار جدید</Header>
+              <Header>{lang[this.props.router.locale]["New Task"]}</Header>
               <Form onSubmit={this.handleSubmit}>
                 <Form.Group >
                   <Form.Input
                     width={2}
                     style={{ marginBottom: 4 }}
                     type='number'
-                    placeholder='مدت انجام'
+                    placeholder={lang[this.props.router.locale]["Duration"]}
                     name='duration'
                     value={this.state.duration}
                     onChange={this.handleChange}
@@ -359,7 +375,7 @@ class Home extends Component {
                   <Form.Input
                     width={14}
                     style={{ marginBottom: 4 }}
-                    placeholder='اسم کار'
+                    placeholder={lang[this.props.router.locale]["Task Name"]}
                     name='task'
                     value={this.state.task}
                     onChange={this.handleChange}
@@ -367,7 +383,7 @@ class Home extends Component {
 
                 </Form.Group>
                 <Form.Group inline>
-                  <Button content='فقط امروز' color="teal" basic size='mini' onClick={(e) => {
+                  <Button content={lang[this.props.router.locale]["Just Today"]} color="teal" basic size='mini' onClick={(e) => {
                     e.preventDefault()
                     this.setState({
                       ...this.state,
@@ -380,7 +396,7 @@ class Home extends Component {
                       sun: false
                     })
                   }} />
-                  <Button content='هر روز' color="teal" basic size='mini' onClick={(e) => {
+                  <Button content={lang[this.props.router.locale]["Everyday"]} color="teal" basic size='mini' onClick={(e) => {
                     e.preventDefault()
                     this.setState({
                       ...this.state,
@@ -393,7 +409,7 @@ class Home extends Component {
                       sun: true
                     })
                   }} />
-                  <Button content='روزهای فرد' color="teal" basic size='mini' onClick={(e) => {
+                  <Button content={lang[this.props.router.locale]["Odd days"]} color="teal" basic size='mini' onClick={(e) => {
                     e.preventDefault()
                     this.setState({
                       ...this.state,
@@ -407,7 +423,7 @@ class Home extends Component {
                     })
                   }} />
 
-                  <Button content='روزهای زوج' color="teal" basic size='mini' onClick={(e) => {
+                  <Button content={lang[this.props.router.locale]["Even days"]} color="teal" basic size='mini' onClick={(e) => {
                     e.preventDefault()
                     this.setState({
                       ...this.state,
@@ -424,16 +440,16 @@ class Home extends Component {
                 </Form.Group>
                 <Form.Group inline>
                   <label>روزها</label>
-                  <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.mon} onChange={this.handleChange} label='دوشنبه' name='mon' />
-                  <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.tue} onChange={this.handleChange} label='سه شنبه' name='tue' />
-                  <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.wed} onChange={this.handleChange} label='چهارشنبه' name='wed' />
-                  <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.thu} onChange={this.handleChange} label='پنجشنبه' name='thu' />
-                  <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.fri} onChange={this.handleChange} label='جمعه' name='fri' />
-                  <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.sat} onChange={this.handleChange} label='شنبه' name='sat' />
-                  <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.sun} onChange={this.handleChange} label='یکشنبه' name='sun' />
+                  <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.mon} onChange={this.handleChange} label={lang[this.props.router.locale]['Monday']} name='mon' />
+                  <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.tue} onChange={this.handleChange} label={lang[this.props.router.locale]['Tuesday']} name='tue' />
+                  <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.wed} onChange={this.handleChange} label={lang[this.props.router.locale]['Wednesday']} name='wed' />
+                  <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.thu} onChange={this.handleChange} label={lang[this.props.router.locale]['Thursday']} name='thu' />
+                  <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.fri} onChange={this.handleChange} label={lang[this.props.router.locale]['Friday']} name='fri' />
+                  <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.sat} onChange={this.handleChange} label={lang[this.props.router.locale]['Saturday']} name='sat' />
+                  <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.sun} onChange={this.handleChange} label={lang[this.props.router.locale]['Sunday']} name='sun' />
                 </Form.Group>
                 <Form.Group>
-                  <Form.Button width={2} content='ثبت' />
+                  <Form.Button width={2} content={lang[this.props.router.locale]['Submit']} />
                 </Form.Group>
               </Form>
             </Segment>
@@ -445,13 +461,13 @@ class Home extends Component {
     )
   }
 }
-const taskStutus = (el) => {
+const taskStutus = (el, locale) => {
   if (parseInt(el.total[new Date().toLocaleString().substr(0, 10)]) <= 0)
-    return <Button basic content='تکمیل شده' size='mini' />
+    return <Button basic content={lang[locale]["Compeleted"]} size='mini' />
   else if (parseInt(el.total[new Date().toLocaleString().substr(0, 10)]) < parseInt(el.duration) && !(parseInt(el.total[new Date().toLocaleString().substr(0, 10)]) <= 0))
-    return <Button basic color='teal' content='در حال انجام' size='mini' />
+    return <Button basic color='teal' content={lang[locale]["In Progress"]} size='mini' />
   else if (el.total[new Date().toLocaleString().substr(0, 10)] === undefined)
-    return <Button basic color='orange' content='انجام نشده' size='mini' />
+    return <Button basic color='orange' content={lang[locale]["Pending"]} size='mini' />
 
 
   return <Button basic content='Undefined' />
@@ -498,5 +514,7 @@ const mapStateToProps = state => ({
   todos: state.app.todos,
 });
 
-const ConnectedApp = connect(mapStateToProps)(Home);
+const ConnectedApp = withRouter(connect(mapStateToProps)(Home));
 export default ConnectedApp
+
+
