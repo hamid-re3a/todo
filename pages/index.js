@@ -311,7 +311,23 @@ class Home extends Component {
                       <Table.Row key={i}>
 
                         <Table.Cell width={4}>
-                          {item.task}
+                          {/* {item.task} */}
+
+                          <Form.Input
+                            name='task'
+                            transparent
+                            value={item.task}
+                            onChange={(el) => {
+                              this.props.dispatch({
+                                type: "UPDATE",
+                                key: item.task,
+                                payload: {
+                                  task: el.target.value
+                                }
+
+                              })
+                            }}
+                          />
                         </Table.Cell>
                         <Table.Cell width={2}>
                           {(new Date(item.duration)).toUTCString().substr(17, 8)}
@@ -336,6 +352,8 @@ class Home extends Component {
                               item.clockApi = api
                               let sign = (parseInt(total) > 0) ? "" : "-";
 
+                              if ((this.props.router.locale == "fa-IR"))
+                                return zeroPad(hours) + ":" + zeroPad(minutes) + ":" + zeroPad(seconds) + sign
                               return sign + zeroPad(hours) + ":" + zeroPad(minutes) + ":" + zeroPad(seconds)
                             }.bind(this)}
                           />
