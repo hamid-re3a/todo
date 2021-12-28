@@ -47,14 +47,14 @@ class Home extends Component {
   deleteConfirmOpen = () => { this.setState({ deleteConfirmOpen: true }); }
   deleteConfirmClose = () => this.setState({ deleteConfirmOpen: false })
 
-  componentDidMount(){
+  componentDidMount() {
     this.props.todos.map(function (item, i) {
-      if(item.id === undefined){
+      if (item.id === undefined) {
         this.props.dispatch({
           type: "UPDATE",
           key: item.id,
           payload: {
-            id:uuidv4()
+            id: uuidv4()
           }
         })
       }
@@ -73,7 +73,10 @@ class Home extends Component {
 
         let d = Math.abs(ref.total);
         let sign = (parseInt(ref.total) > 0) ? "" : "-";
-        document.title = item.id + ", " + sign + (new Date(d)).toUTCString().substr(17, 8);
+        if ((this.props.router.locale == "fa-IR"))
+          document.title = item.task + " " + (new Date(d)).toUTCString().substr(17, 8) + sign;
+        else
+          document.title = item.task + " " + sign + (new Date(d)).toUTCString().substr(17, 8);
 
         this.props.dispatch({
           type: "UPDATE",
