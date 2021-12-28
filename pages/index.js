@@ -19,7 +19,7 @@ import {
   Statistic
 } from "semantic-ui-react";
 import Link from 'next/link';
-// import 'semantic-ui-css/semantic.min.css'
+import { v4 as uuidv4 } from 'uuid';
 import { connect } from "react-redux";
 import lang from "../resources/lang/app.json";
 
@@ -47,24 +47,37 @@ class Home extends Component {
   deleteConfirmOpen = () => { this.setState({ deleteConfirmOpen: true }); }
   deleteConfirmClose = () => this.setState({ deleteConfirmOpen: false })
 
+  componentDidMount(){
+    this.props.todos.map(function (item, i) {
+      if(item.id === undefined){
+        this.props.dispatch({
+          type: "UPDATE",
+          key: item.id,
+          payload: {
+            id:uuidv4()
+          }
+        })
+      }
+    }.bind(this))
+  }
   componentDidUpdate() {
 
     this.props.todos.map(function (item, i) {
 
-      let index = this.props.todos.findIndex(el => el.task === item.task)
+      let index = this.props.todos.findIndex(el => el.id === item.id)
 
       this.props.todos[index].tick = (ref) => {
-        let index = this.props.todos.findIndex(el => el.task === item.task)
+        let index = this.props.todos.findIndex(el => el.id === item.id)
         this.props.todos[index].total[new Date().toLocaleString().substr(0, 10)] = ref.total
 
 
         let d = Math.abs(ref.total);
         let sign = (parseInt(ref.total) > 0) ? "" : "-";
-        document.title = item.task + ", " + sign + (new Date(d)).toUTCString().substr(17, 8);
+        document.title = item.id + ", " + sign + (new Date(d)).toUTCString().substr(17, 8);
 
         this.props.dispatch({
           type: "UPDATE",
-          key: item.task,
+          key: item.id,
           payload: {
             total: this.props.todos[index].total
           }
@@ -128,6 +141,7 @@ class Home extends Component {
       type: "ADD",
       key: task,
       payload: {
+        id: uuidv4(),
         task,
         duration: duration * 60 * 1000,
         isStarted: false,
@@ -174,7 +188,7 @@ class Home extends Component {
 
     this.props.dispatch({
       type: "DELETE",
-      key: item.task,
+      key: item.id,
     })
 
   }
@@ -186,7 +200,7 @@ class Home extends Component {
       if (item.isStarted) {
         this.props.dispatch({
           type: "UPDATE",
-          key: item.task,
+          key: item.id,
           payload: {
             isStarted: false
           }
@@ -207,7 +221,7 @@ class Home extends Component {
   cutTotalTime = (item, time, operation) => {
 
 
-    let index = this.props.todos.findIndex(el => el.task === item.task)
+    let index = this.props.todos.findIndex(el => el.id === item.id)
 
 
     if (this.props.todos[index].total[new Date().toLocaleString().substr(0, 10)] === undefined)
@@ -218,7 +232,7 @@ class Home extends Component {
       this.props.todos[index].total[new Date().toLocaleString().substr(0, 10)] = this.props.todos[index].total[new Date().toLocaleString().substr(0, 10)] + time * 1000 * 60
     this.props.dispatch({
       type: "UPDATE",
-      key: item.task,
+      key: item.id,
       payload: {
         total: this.props.todos[index].total
       }
@@ -227,7 +241,7 @@ class Home extends Component {
   toggleCountDownStatus = (item) => {
 
     let concurrent = this.props.todos.findIndex(function (inner_item, i) {
-      if (inner_item.task == item.task)
+      if (inner_item.id == item.id)
         return false
       return inner_item.isStarted
     })
@@ -238,11 +252,11 @@ class Home extends Component {
     }
 
 
-    let index = this.props.todos.findIndex(el => el.task === item.task)
+    let index = this.props.todos.findIndex(el => el.id === item.id)
     if (this.props.todos[index].isStarted) {
       this.props.dispatch({
         type: "UPDATE",
-        key: item.task,
+        key: item.id,
         payload: {
           isStarted: false
         }
@@ -252,7 +266,7 @@ class Home extends Component {
     } else {
       this.props.dispatch({
         type: "UPDATE",
-        key: item.task,
+        key: item.id,
         payload: {
           isStarted: true
         }
@@ -315,12 +329,12 @@ class Home extends Component {
 
                           <Form.Input
                             name='task'
-                            transparent
+                            transparent={true}
                             value={item.task}
                             onChange={(el) => {
                               this.props.dispatch({
                                 type: "UPDATE",
-                                key: item.task,
+                                key: item.id,
                                 payload: {
                                   task: el.target.value
                                 }
@@ -610,5 +624,3 @@ const mapStateToProps = state => ({
 
 const ConnectedApp = withRouter(connect(mapStateToProps)(Home));
 export default ConnectedApp
-
-

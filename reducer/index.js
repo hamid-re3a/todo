@@ -15,7 +15,7 @@ export default function (state = defaultState, action = {}) {
       };
 
     case 'UPDATE':
-      let index = state.todos.findIndex(el => el.task === action.key)
+      let index = state.todos.findIndex(el => el.id === action.key)
       state.todos[index] = {
         ...state.todos[index],
         ...action.payload
@@ -27,7 +27,7 @@ export default function (state = defaultState, action = {}) {
       };
     case 'DELETE':
       
-      index = state.todos.findIndex(el => el.task === action.key)
+      index = state.todos.findIndex(el => el.id === action.key)
       if (index > -1) {
         state.todos.splice(index, 1);
       }
