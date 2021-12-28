@@ -208,6 +208,10 @@ class Home extends Component {
 
 
     let index = this.props.todos.findIndex(el => el.task === item.task)
+
+
+    if (this.props.todos[index].total[new Date().toLocaleString().substr(0, 10)] === undefined)
+      this.props.todos[index].total[new Date().toLocaleString().substr(0, 10)] = this.props.todos[index].duration;
     if (operation === 'minus')
       this.props.todos[index].total[new Date().toLocaleString().substr(0, 10)] = this.props.todos[index].total[new Date().toLocaleString().substr(0, 10)] - time * 1000 * 60
     else
@@ -542,7 +546,7 @@ const taskStutus = (el, locale) => {
     return <Button basic color='orange' content={lang[locale]["Pending"]} size='mini' />
 
 
-  return <Button basic content='Undefined' />
+  return <Button basic color='orange' content={lang[locale]["Pending"]} size='mini' />
 }
 const todaysTask = (el) => {
   let day = ''
