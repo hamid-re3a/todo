@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Container, Segment, Grid, Header } from "semantic-ui-react";
+import { Button, Container, Segment, Grid, Header, Tab } from "semantic-ui-react";
 import { withRouter } from 'next/router'
 import {
   Table,
@@ -39,6 +39,7 @@ class Home extends Component {
     fri: false,
     sat: false,
     sun: false,
+    day: false,
     todos: this.props.todos
   }
 
@@ -109,7 +110,17 @@ class Home extends Component {
       this.state.sat ||
       this.state.sun
     )) {
-      days[new Date().toLocaleString().substr(0, 10)] = true
+      if (!this.state.day)
+        days[new Date().toLocaleString().substr(0, 10)] = true
+    }
+
+
+
+    if (this.state.day) {
+      const today = new Date()
+      const tomorrow = new Date(today)
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      days[tomorrow.toLocaleString().substr(0, 10)] = true
     }
 
 
@@ -141,7 +152,7 @@ class Home extends Component {
       fri: false,
       sat: false,
       sun: false,
-
+      day: false,
       todos: [
         ...this.state.todos,
         {
@@ -155,7 +166,7 @@ class Home extends Component {
         }
       ]
     });
-
+    alert(lang[this.props.router.locale]["OK"])
 
   }
 
@@ -169,6 +180,46 @@ class Home extends Component {
   }
 
 
+  stopAll = () => {
+
+    this.props.todos.map(function (item, index) {
+      if (item.isStarted) {
+        this.props.dispatch({
+          type: "UPDATE",
+          key: item.task,
+          payload: {
+            isStarted: false
+          }
+        })
+
+        if (this.props.todos[index].clockApi !== null)
+          this.props.todos[index].clockApi.pause()
+      }
+
+
+    }.bind(this))
+    alert(lang[this.props.router.locale]["OK"])
+
+
+  }
+
+
+  cutTotalTime = (item, time, operation) => {
+
+
+    let index = this.props.todos.findIndex(el => el.task === item.task)
+    if (operation === 'minus')
+      this.props.todos[index].total[new Date().toLocaleString().substr(0, 10)] = this.props.todos[index].total[new Date().toLocaleString().substr(0, 10)] - time * 1000 * 60
+    else
+      this.props.todos[index].total[new Date().toLocaleString().substr(0, 10)] = this.props.todos[index].total[new Date().toLocaleString().substr(0, 10)] + time * 1000 * 60
+    this.props.dispatch({
+      type: "UPDATE",
+      key: item.task,
+      payload: {
+        total: this.props.todos[index].total
+      }
+    })
+  }
   toggleCountDownStatus = (item) => {
 
     let concurrent = this.props.todos.findIndex(function (inner_item, i) {
@@ -214,7 +265,7 @@ class Home extends Component {
   }
 
   render() {
-    console.log(this.props.router)
+    console.log(this.props.todos)
     return (
 
       <React.Fragment>
@@ -237,13 +288,25 @@ class Home extends Component {
                 <Table.Body>
                   {/* We get an Object for todos so we have to map and pull out each "element" */}
 
+                  <Table.Row>
+                    <Table.HeaderCell width={4}>{lang[this.props.router.locale]["Task Name"]} </Table.HeaderCell>
+                    <Table.HeaderCell width={2}>{lang[this.props.router.locale]["Duration"]} </Table.HeaderCell>
+                    <Table.HeaderCell width={2}>{lang[this.props.router.locale]["Task Status"]} </Table.HeaderCell>
+                    <Table.HeaderCell width={2}>{lang[this.props.router.locale]["Total Done"]} </Table.HeaderCell>
+                    <Table.HeaderCell width={2}> </Table.HeaderCell>
+                    <Table.HeaderCell width={4}>
+                      <Button content={lang[this.props.router.locale]["Stop All"]} style={{ width: "50%" }}
+                        color='teal' basic size='mini'
+                        onClick={() => this.stopAll()} />
+                    </Table.HeaderCell>
+                  </Table.Row>
                   {this.props.todos.filter(todaysTask).map(function (item, i) {
 
                     let startPoint = (item.total[new Date().toLocaleString().substr(0, 10)] != undefined) ? item.total[new Date().toLocaleString().substr(0, 10)] : parseInt(item.duration);
                     return (
                       <Table.Row key={i}>
 
-                        <Table.Cell width={6}>
+                        <Table.Cell width={4}>
                           {item.task}
                         </Table.Cell>
                         <Table.Cell width={2}>
@@ -252,7 +315,7 @@ class Home extends Component {
                         <Table.Cell width={2}>
                           {taskStutus(item, this.props.router.locale)}
                         </Table.Cell>
-                        <Table.Cell width={2} onClick={() => this.toggleCountDownStatus(item)}>
+                        <Table.Cell width={2}>
 
                           <Countdown
                             date={Date.now() + startPoint}
@@ -272,6 +335,12 @@ class Home extends Component {
                               return sign + zeroPad(hours) + ":" + zeroPad(minutes) + ":" + zeroPad(seconds)
                             }.bind(this)}
                           />
+
+                        </Table.Cell>
+
+                        <Table.Cell width={2}>
+                          <Button icon={'minus'} content={'5'} color='teal' basic size='mini' onClick={() => this.cutTotalTime(item, 5, 'minus')} />
+                          <Button icon={'plus'} content={'5'} color='teal' basic size='mini' onClick={() => this.cutTotalTime(item, 5, 'plus')} />
                         </Table.Cell>
                         <Table.Cell width={4}>
                           <Button icon='delete' content={lang[this.props.router.locale]["Delete"]} color="black" basic size='mini' onClick={() => { this.deleteConfirmOpen(); this.setState({ toBeDeletedTask: item }) }} />
@@ -286,6 +355,8 @@ class Home extends Component {
                           />
 
                           <Button icon={item.isStarted ? 'pause' : 'play'} content={item.isStarted ? lang[this.props.router.locale]["Pause"] : lang[this.props.router.locale]["Start"]} color='teal' basic size='mini' onClick={() => this.toggleCountDownStatus(item)} />
+
+
                         </Table.Cell>
                       </Table.Row>
                     )
@@ -437,9 +508,10 @@ class Home extends Component {
                     })
 
                   }} />
+                  <Form.Checkbox style={{ marginLeft: 4, marginRight: 4 }} checked={this.state.day} onChange={this.handleChange} label={lang[this.props.router.locale]['Tomorrow']} name='day' />
                 </Form.Group>
                 <Form.Group inline>
-                  <label>روزها</label>
+                  <label>{lang[this.props.router.locale]['Days']}</label>
                   <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.mon} onChange={this.handleChange} label={lang[this.props.router.locale]['Monday']} name='mon' />
                   <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.tue} onChange={this.handleChange} label={lang[this.props.router.locale]['Tuesday']} name='tue' />
                   <Form.Checkbox style={{ marginBottom: 4 }} checked={this.state.wed} onChange={this.handleChange} label={lang[this.props.router.locale]['Wednesday']} name='wed' />

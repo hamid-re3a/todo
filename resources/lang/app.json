@@ -30,7 +30,13 @@
         "New Task":"کار جدید",
         "Statistics":"آمار",
         "No Job":"کاری نیست",
-        "No Job description":"به نظر میرسه همه کارها <b>انجام شده!</b>"
+        "No Job description":"به نظر میرسه همه کارها انجام شده!",
+        "Task Status":"وضعیت کار",
+        "Total Done":"زمان سپری شده",
+        "Stop All":"توقف همه",
+        "OK":"درست شد",
+        "Days":"روزها",
+        "Tomorrow":"فردا"
     },
     "en-US": {
         "Monday": "Monday",
@@ -55,14 +61,20 @@
         "Odd days":"Odd days",
         "Even days": "Even days",
         "Submit": "Submit",
-        "Confirm Button":"OK",
-        "Cancel Button":"No",
+        "Confirm Button":"Yes",
+        "Cancel Button":"Forget about it!",
         "Confirm content":"Are you sure?",
         "Fill all fileds":"Please fill all fields",
         "Concurrent jobs":"Two jobs can't run at the same time",
         "New Task":"New Task",
         "Statistics":"Statistics",
         "No Job":"No jobs",
-        "No Job description":"Seem like you finished all taks!"
+        "No Job description":"Seem like you finished all taks!",
+        "Task Status":"Task Status",
+        "Total Done":"Dedicated time",
+        "Stop All":"Stop All",
+        "OK":"It's done",
+        "Days":"Days",
+        "Tomorrow":"Tomorrow"
     }
 }
