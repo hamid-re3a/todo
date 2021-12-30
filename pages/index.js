@@ -356,7 +356,7 @@ class Home extends Component {
                           />
                         </Table.Cell>
                         <Table.Cell width={2}>
-                          <Rating defaultRating={item.priority} onRate={(el, input) => {
+                          <Rating rating={item.priority} onRate={(el, input) => {
                             this.props.dispatch({
                               type: "UPDATE",
                               key: item.id,
@@ -509,7 +509,7 @@ class Home extends Component {
                         style={{ marginBottom: 4, paddingTop: 4 }}
                         type='range'
                         name='priority'
-                        defaultRating={this.state.priority}
+                        rating={this.state.priority}
                         onRate={this.handleChange}
                         size='huge' maxRating={5}
                       />
