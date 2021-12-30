@@ -10,7 +10,7 @@ import {
   Loader,
   Form,
   Transition,
-  Image,
+  Rating,
   Confirm,
   Input,
   Select,
@@ -40,6 +40,7 @@ class Home extends Component {
     sat: false,
     sun: false,
     day: false,
+    priority: 0,
     todos: this.props.todos
   }
 
@@ -55,6 +56,16 @@ class Home extends Component {
           key: item.id,
           payload: {
             id: uuidv4()
+          }
+        })
+      }
+
+      if (item.priority === undefined) {
+        this.props.dispatch({
+          type: "UPDATE",
+          key: item.id,
+          payload: {
+            priority: 1
           }
         })
       }
@@ -91,8 +102,10 @@ class Home extends Component {
 
   }
   handleChange = (e, input) => {
-    if (input.type === "checkbox") {
+    if (input !== undefined && input.type === "checkbox") {
       this.setState({ [input.name]: input.checked })
+    } else if (input !== undefined && input.type === "range") {
+      this.setState({ [input.name]: input.rating })
     } else {
       this.setState({ [e.target.name]: e.target.value })
     }
@@ -100,7 +113,7 @@ class Home extends Component {
 
   handleSubmit = () => {
 
-    const { task, duration } = this.state
+    const { task, duration, priority } = this.state
 
     if (task.length === 0 || parseInt(duration) === 0) {
       alert(lang[this.props.router.locale]["Fill all fileds"])
@@ -150,7 +163,8 @@ class Home extends Component {
         isStarted: false,
         total: {},
         clockApi: null,
-        days
+        days,
+        priority
       }
 
 
@@ -286,7 +300,6 @@ class Home extends Component {
   }
 
   render() {
-    console.log(this.props.todos)
     return (
 
       <React.Fragment>
@@ -310,7 +323,8 @@ class Home extends Component {
                   {/* We get an Object for todos so we have to map and pull out each "element" */}
 
                   <Table.Row>
-                    <Table.HeaderCell width={4}>{lang[this.props.router.locale]["Task Name"]} </Table.HeaderCell>
+                    <Table.HeaderCell width={3}>{lang[this.props.router.locale]["Task Name"]} </Table.HeaderCell>
+                    <Table.HeaderCell width={2}>{lang[this.props.router.locale]["Priority"]} </Table.HeaderCell>
                     <Table.HeaderCell width={2}>{lang[this.props.router.locale]["Duration"]} </Table.HeaderCell>
                     <Table.HeaderCell width={2}>{lang[this.props.router.locale]["Task Status"]} </Table.HeaderCell>
                     <Table.HeaderCell width={2}>{lang[this.props.router.locale]["Total Done"]} </Table.HeaderCell>
@@ -321,13 +335,13 @@ class Home extends Component {
                         onClick={() => this.stopAll()} />
                     </Table.HeaderCell>
                   </Table.Row>
-                  {this.props.todos.filter(todaysTask).map(function (item, i) {
+                  {this.props.todos.filter(todaysTask).sort((a,b)=> b.priority -a.priority ).map(function (item, i) {
 
                     let startPoint = (item.total[new Date().toLocaleString().substr(0, 10)] != undefined) ? item.total[new Date().toLocaleString().substr(0, 10)] : parseInt(item.duration);
                     return (
                       <Table.Row key={i}>
 
-                        <Table.Cell width={4}>
+                        <Table.Cell width={3}>
                           {/* {item.task} */}
 
                           <Form.Input
@@ -345,6 +359,18 @@ class Home extends Component {
                               })
                             }}
                           />
+                        </Table.Cell>
+                        <Table.Cell width={2}>
+                          <Rating rating={item.priority} onRate={(el,input) => {
+                              this.props.dispatch({
+                                type: "UPDATE",
+                                key: item.id,
+                                payload: {
+                                  priority: input.rating
+                                }
+
+                              })
+                            }} maxRating={5} />
                         </Table.Cell>
                         <Table.Cell width={2}>
                           {(new Date(item.duration)).toUTCString().substr(17, 8)}
@@ -378,8 +404,8 @@ class Home extends Component {
                         </Table.Cell>
 
                         <Table.Cell width={2}>
-                          <Button icon={'minus'} content={'5'} color='teal' basic size='mini' onClick={() => this.cutTotalTime(item, 5, 'minus')} />
-                          <Button icon={'plus'} content={'5'} color='teal' basic size='mini' onClick={() => this.cutTotalTime(item, 5, 'plus')} />
+                          <Icon name={'forward'} color='teal' style={{ cursor: "pointer", marginRight: 5, marginLeft: 5 }} onClick={() => this.cutTotalTime(item, 5, 'plus')} />
+                          <Icon name={'backward'} color='teal' style={{ cursor: "pointer", marginRight: 5, marginLeft: 5 }} onClick={() => this.cutTotalTime(item, 5, 'minus')} />
                         </Table.Cell>
                         <Table.Cell width={4}>
                           <Button icon='delete' content={lang[this.props.router.locale]["Delete"]} color="black" basic size='mini' onClick={() => { this.deleteConfirmOpen(); this.setState({ toBeDeletedTask: item }) }} />
@@ -477,15 +503,30 @@ class Home extends Component {
                     width={2}
                     style={{ marginBottom: 4 }}
                     type='number'
-                    placeholder={lang[this.props.router.locale]["Duration"]}
+                    label={lang[this.props.router.locale]["Duration"]}
                     name='duration'
                     value={this.state.duration}
                     onChange={this.handleChange}
                   />
                   <Form.Input
-                    width={14}
+                    input={
+                      <Rating 
+                        style={{ marginBottom: 4, paddingTop: 4 }}
+                        type='range'
+                        name='priority'
+                        defaultRating={this.state.priority}
+                        onRate={this.handleChange}
+                        size='huge' rating={this.state.priority} maxRating={5} 
+                       />
+                    }
+                    label={lang[this.props.router.locale]["Priority"]}
+                    width={2}
+
+                  />
+                  <Form.Input
+                    width={12}
                     style={{ marginBottom: 4 }}
-                    placeholder={lang[this.props.router.locale]["Task Name"]}
+                    label={lang[this.props.router.locale]["Task Name"]}
                     name='task'
                     value={this.state.task}
                     onChange={this.handleChange}

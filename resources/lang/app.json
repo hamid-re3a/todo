@@ -36,7 +36,8 @@
         "Stop All":"توقف همه",
         "OK":"درست شد",
         "Days":"روزها",
-        "Tomorrow":"فردا"
+        "Tomorrow":"فردا",
+        "Priority":"الویت"
     },
     "en-US": {
         "Monday": "Monday",
@@ -75,6 +76,7 @@
         "Stop All":"Stop All",
         "OK":"It's done",
         "Days":"Days",
-        "Tomorrow":"Tomorrow"
+        "Tomorrow":"Tomorrow",
+        "Priority":"Priority"
     }
 }
