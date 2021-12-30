@@ -1,6 +1,9 @@
 import React from "react";
 import { Button, Container, Segment, Grid, Header, Tab } from "semantic-ui-react";
 import { withRouter } from 'next/router'
+import { DatePicker } from "jalali-react-datepicker";
+import moj from 'moment-jalaali'
+import moment from 'moment'
 import {
   Table,
   Message,
@@ -142,16 +145,8 @@ class Home extends Component {
       if (!this.state.day)
         days[new Date().toLocaleString().substr(0, 10)] = true
     }
-
-
-
-    if (this.state.day) {
-      const today = new Date()
-      const tomorrow = new Date(today)
-      tomorrow.setDate(tomorrow.getDate() + 1)
-      days[tomorrow.toLocaleString().substr(0, 10)] = true
-    }
-
+    if (moment(moment(this.state.day).format('YYYY-DD-MM'), 'YYYY-DD-MM', true).isValid())
+      days[moment(this.state.day).format('MM/DD/YYYY')] = true
 
     this.props.dispatch({
       type: "ADD",
@@ -335,7 +330,7 @@ class Home extends Component {
                         onClick={() => this.stopAll()} />
                     </Table.HeaderCell>
                   </Table.Row>
-                  {this.props.todos.filter(todaysTask).sort((a,b)=> b.priority -a.priority ).map(function (item, i) {
+                  {this.props.todos.filter(todaysTask).sort((a, b) => b.priority - a.priority).map(function (item, i) {
 
                     let startPoint = (item.total[new Date().toLocaleString().substr(0, 10)] != undefined) ? item.total[new Date().toLocaleString().substr(0, 10)] : parseInt(item.duration);
                     return (
@@ -361,16 +356,16 @@ class Home extends Component {
                           />
                         </Table.Cell>
                         <Table.Cell width={2}>
-                          <Rating rating={item.priority} onRate={(el,input) => {
-                              this.props.dispatch({
-                                type: "UPDATE",
-                                key: item.id,
-                                payload: {
-                                  priority: input.rating
-                                }
+                          <Rating defaultRating={item.priority} onRate={(el, input) => {
+                            this.props.dispatch({
+                              type: "UPDATE",
+                              key: item.id,
+                              payload: {
+                                priority: input.rating
+                              }
 
-                              })
-                            }} maxRating={5} />
+                            })
+                          }} maxRating={5} />
                         </Table.Cell>
                         <Table.Cell width={2}>
                           {(new Date(item.duration)).toUTCString().substr(17, 8)}
@@ -510,21 +505,75 @@ class Home extends Component {
                   />
                   <Form.Input
                     input={
-                      <Rating 
+                      <Rating
                         style={{ marginBottom: 4, paddingTop: 4 }}
                         type='range'
                         name='priority'
                         defaultRating={this.state.priority}
                         onRate={this.handleChange}
-                        size='huge' rating={this.state.priority} maxRating={5} 
-                       />
+                        size='huge' maxRating={5}
+                      />
                     }
                     label={lang[this.props.router.locale]["Priority"]}
                     width={2}
 
                   />
+                  {(this.props.router.locale !== "fa-IR") ? (
+                    <Form.Input
+                      label={lang[this.props.router.locale]["Datetime"]}
+                      input={
+                        <input
+                          style={{ marginBottom: 4, padding: 8 }}
+                          type='date'
+
+                        />
+                      }
+                      width={3}
+                      value={this.state.day}
+
+                      onChange={(el, input) => {
+                        if (moment(moment(input.value).format('MM/DD/YYYY'), 'MM/DD/YYYY', true).isValid()) {
+                          if (moment(moment(input.value).format('MM/DD/YYYY'), 'MM/DD/YYYY', true).isAfter(moment().subtract(1, 'days'))) {
+                            this.setState({ day: input.value })
+                          }
+                        }
+
+                      }
+                      }
+                    />) : (
+                    <Form.Input
+                      label={lang[this.props.router.locale]["Datetime"]}
+                      input={
+                        <div>
+                          <div style={{ left: 0, position: 'absolute', paddingTop: 8 }}>
+                            {
+                              moment(this.state.day).isValid() ?
+                                moj(this.state.day, 'YYYY-MM-DD').format('jYYYY-jMM-jDD')
+                                : lang[this.props.router.locale]["Just Today"]
+                            }
+                          </div>
+                          <DatePicker
+                            timePicker={false}
+                            onClickSubmitButton={(el) => {
+                              if (moment(el.value).isValid()) {
+                                if (moment(el.value).isAfter(moment().subtract(1, 'days'))) {
+                                  this.setState({ day: moment(el.value).format('YYYY-MM-DD') })
+                                }
+                              }
+                            }
+                            }
+                          />
+                        </div>
+
+                      }
+
+                      width={3}
+
+                    />)}
+
+
                   <Form.Input
-                    width={12}
+                    width={9}
                     style={{ marginBottom: 4 }}
                     label={lang[this.props.router.locale]["Task Name"]}
                     name='task'
@@ -588,7 +637,7 @@ class Home extends Component {
                     })
 
                   }} />
-                  <Form.Checkbox style={{ marginLeft: 4, marginRight: 4 }} checked={this.state.day} onChange={this.handleChange} label={lang[this.props.router.locale]['Tomorrow']} name='day' />
+                  {/* <Form.Checkbox style={{ marginLeft: 4, marginRight: 4 }} checked={this.state.day} onChange={this.handleChange} label={lang[this.props.router.locale]['Tomorrow']} name='day' /> */}
                 </Form.Group>
                 <Form.Group inline>
                   <label>{lang[this.props.router.locale]['Days']}</label>

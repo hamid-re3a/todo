@@ -37,7 +37,8 @@
         "OK":"درست شد",
         "Days":"روزها",
         "Tomorrow":"فردا",
-        "Priority":"الویت"
+        "Priority":"الویت",
+        "Datetime":"تاریخ انجام"
     },
     "en-US": {
         "Monday": "Monday",
@@ -77,6 +78,7 @@
         "OK":"It's done",
         "Days":"Days",
         "Tomorrow":"Tomorrow",
-        "Priority":"Priority"
+        "Priority":"Priority",
+        "Datetime":"Datetime"
     }
 }

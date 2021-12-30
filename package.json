@@ -9,6 +9,9 @@
   },
   "dependencies": {
     "flatted": "^3.2.4",
+    "jalali-react-datepicker": "^1.2.1",
+    "moment": "^2.29.1",
+    "moment-jalaali": "^0.9.4",
     "next": "12.0.7",
     "react": "17.0.2",
     "react-countdown": "^2.3.2",
