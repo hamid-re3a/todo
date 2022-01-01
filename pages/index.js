@@ -331,10 +331,13 @@ class Home extends Component {
                     </Table.HeaderCell>
                   </Table.Row>
                   {this.props.todos.filter(todaysTask).sort((a, b) => {
-
-                    if (taskStutusLabel(a) == "Compeleted")
-                      return 0
-
+                    if (taskStutusLabel(a) === taskStutusLabel(b)){
+                      return b.priority - a.priority
+                    } else if("Compeleted" === taskStutusLabel(b))
+                    return -10
+                     else if ("Compeleted" === taskStutusLabel(a))
+                      return 10
+                    
                     return b.priority - a.priority
                   }).map(function (item, i) {
 
