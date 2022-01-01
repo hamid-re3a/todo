@@ -2,7 +2,7 @@ import '../styles/globals.css'
 import { PersistGate } from 'redux-persist/integration/react'
 
 import { Provider, connect } from "react-redux";
-import configureStore from "./store";
+import configureStore from "../redux/store";
 import { useRouter } from "next/router";
 
 

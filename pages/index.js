@@ -330,7 +330,13 @@ class Home extends Component {
                         onClick={() => this.stopAll()} />
                     </Table.HeaderCell>
                   </Table.Row>
-                  {this.props.todos.filter(todaysTask).sort((a, b) => b.priority - a.priority).map(function (item, i) {
+                  {this.props.todos.filter(todaysTask).sort((a, b) => {
+
+                    if (taskStutusLabel(a) == "Compeleted")
+                      return 0
+
+                    return b.priority - a.priority
+                  }).map(function (item, i) {
 
                     let startPoint = (item.total[new Date().toLocaleString().substr(0, 10)] != undefined) ? item.total[new Date().toLocaleString().substr(0, 10)] : parseInt(item.duration);
                     return (
@@ -399,8 +405,14 @@ class Home extends Component {
                         </Table.Cell>
 
                         <Table.Cell width={2}>
-                          <Icon name={'forward'} color='teal' style={{ cursor: "pointer", marginRight: 5, marginLeft: 5 }} onClick={() => this.cutTotalTime(item, 5, 'plus')} />
-                          <Icon name={'backward'} color='teal' style={{ cursor: "pointer", marginRight: 5, marginLeft: 5 }} onClick={() => this.cutTotalTime(item, 5, 'minus')} />
+                          <span style={{ cursor: "pointer", marginRight: 5, marginLeft: 5 }} onClick={() => this.cutTotalTime(item, 5, 'plus')} >
+                            <Icon name={'clock '} content={'+5'} color='teal' basic compact={true} />
+                            <span style={{ color: 'teal' }}>5+</span>
+                          </span>
+                          <span style={{ cursor: "pointer", marginRight: 5, marginLeft: 5 }} onClick={() => this.cutTotalTime(item, 5, 'minus')} >
+                            <Icon name={'clock outline'} color='teal' />
+                            <span style={{ color: 'teal' }}>5-</span>
+                          </span>
                         </Table.Cell>
                         <Table.Cell width={4}>
                           <Button icon='delete' content={lang[this.props.router.locale]["Delete"]} color="black" basic size='mini' onClick={() => { this.deleteConfirmOpen(); this.setState({ toBeDeletedTask: item }) }} />
@@ -667,11 +679,17 @@ const taskStutus = (el, locale) => {
     return <Button basic content={lang[locale]["Compeleted"]} size='mini' />
   else if (parseInt(el.total[new Date().toLocaleString().substr(0, 10)]) < parseInt(el.duration) && !(parseInt(el.total[new Date().toLocaleString().substr(0, 10)]) <= 0))
     return <Button basic color='teal' content={lang[locale]["In Progress"]} size='mini' />
-  else if (el.total[new Date().toLocaleString().substr(0, 10)] === undefined)
-    return <Button basic color='orange' content={lang[locale]["Pending"]} size='mini' />
-
 
   return <Button basic color='orange' content={lang[locale]["Pending"]} size='mini' />
+}
+
+const taskStutusLabel = (el) => {
+  if (parseInt(el.total[new Date().toLocaleString().substr(0, 10)]) <= 0)
+    return "Compeleted"
+  else if (parseInt(el.total[new Date().toLocaleString().substr(0, 10)]) < parseInt(el.duration) && !(parseInt(el.total[new Date().toLocaleString().substr(0, 10)]) <= 0))
+    return "In Progress"
+
+  return "Pending"
 }
 const todaysTask = (el) => {
   let day = ''
