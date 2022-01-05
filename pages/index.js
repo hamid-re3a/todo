@@ -75,14 +75,12 @@ class Home extends Component {
     }.bind(this))
   }
   componentDidUpdate() {
-
     this.props.todos.map(function (item, i) {
 
-      let index = this.props.todos.findIndex(el => el.id === item.id)
+      this.findPropsIndex(item).tick = (ref) => {
 
-      this.props.todos[index].tick = (ref) => {
-        let index = this.props.todos.findIndex(el => el.id === item.id)
-        this.props.todos[index].total[new Date().toLocaleString().substr(0, 10)] = ref.total
+        
+        this.findPropsIndex(item).total[new Date().toLocaleString().substr(0, 10)] = ref.total
 
 
         let d = Math.abs(ref.total);
@@ -92,16 +90,25 @@ class Home extends Component {
         else
           document.title = item.task + " " + sign + (new Date(d)).toUTCString().substr(17, 8);
 
+
         this.props.dispatch({
           type: "UPDATE",
           key: item.id,
           payload: {
-            total: this.props.todos[index].total
+            total: this.findPropsIndex(item).total
           }
         })
 
       }
     }.bind(this))
+
+  }
+  componentDidMount(){
+    this.componentDidUpdate();
+  }
+ 
+  findPropsIndex = (item) => {
+      return this.props.todos.find(el => el.id === item.id)
 
   }
   handleChange = (e, input) => {
@@ -264,8 +271,7 @@ class Home extends Component {
     }
 
 
-    let index = this.props.todos.findIndex(el => el.id === item.id)
-    if (this.props.todos[index].isStarted) {
+    if (this.findPropsIndex(item).isStarted) {
       this.props.dispatch({
         type: "UPDATE",
         key: item.id,
@@ -274,7 +280,7 @@ class Home extends Component {
         }
       })
       // this.state.todos[index].isStarted = false
-      this.props.todos[index].clockApi.pause()
+      this.findPropsIndex(item).clockApi.pause()
     } else {
       this.props.dispatch({
         type: "UPDATE",
@@ -285,7 +291,7 @@ class Home extends Component {
 
       })
       // this.state.todos[index].isStarted = true
-      this.props.todos[index].clockApi.start()
+      this.findPropsIndex(item).clockApi.start()
     }
 
     this.setState({
@@ -331,15 +337,16 @@ class Home extends Component {
                     </Table.HeaderCell>
                   </Table.Row>
                   {this.props.todos.filter(todaysTask).sort((a, b) => {
-                    if (taskStutusLabel(a) === taskStutusLabel(b)){
-                      return b.priority - a.priority
-                    } else if("Compeleted" === taskStutusLabel(b))
-                    return -10
-                     else if ("Compeleted" === taskStutusLabel(a))
-                      return 10
+                    // if (taskStutusLabel(a) === taskStutusLabel(b)){
+                    //   return b.priority - a.priority
+                    // } else if("Compeleted" === taskStutusLabel(b))
+                    // return -10
+                    //  else if ("Compeleted" === taskStutusLabel(a))
+                    //   return 10
                     
                     return b.priority - a.priority
-                  }).map(function (item, i) {
+                  })
+                  .map(function (item, i) {
 
                     let startPoint = (item.total[new Date().toLocaleString().substr(0, 10)] != undefined) ? item.total[new Date().toLocaleString().substr(0, 10)] : parseInt(item.duration);
                     return (
@@ -385,6 +392,7 @@ class Home extends Component {
                         <Table.Cell width={2}>
 
                           <Countdown
+                            key={item.id}
                             date={Date.now() + startPoint}
                             ref={item.ref}
                             autoStart={false}
